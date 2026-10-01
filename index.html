@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Glimmr Homeschool</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--pri:#5b3fd6;--pri2:#7c5cff;--acc:#ffb703;--ink:#1f1b3a;--mut:#6b6788;--bg:#f7f5ff;--line:#e6e2f7;--ok:#22c55e}
+:root{--pri:#5b3fd6;--pri2:#7c5cff;--acc:#ffb703;--ink:#1f1b3a;--mut:#6b6788;--bg:#f7f5ff;--line:#e6e2f7;--ok:#22c55e;--bad:#ef4444}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:Nunito,sans-serif;background:#ddd8f5;color:var(--ink)}
 .app{max-width:440px;margin:auto;min-height:100vh;background:var(--bg);position:relative;padding-bottom:84px}
-.app.auth{padding-bottom:0}
+.app.bare{padding-bottom:0}
 .top{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;padding:18px 16px 22px;border-radius:0 0 24px 24px}
 .logo{font-weight:900;font-size:24px}.logo span{color:var(--acc)}
 .top p{margin:4px 0 14px;opacity:.9}
@@ -19,68 +21,96 @@ body{margin:0;font-family:Nunito,sans-serif;background:#ddd8f5;color:var(--ink)}
 .search input{flex:1;border:0;outline:0;padding:10px 0;font:16px Nunito}
 .sec{padding:18px 16px 0}.sec h2{font-size:19px;margin:0 0 12px}
 .hs{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.hs::-webkit-scrollbar{display:none}
-.kid{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;border-radius:999px;background:#ffffff26;color:#fff;font-weight:700;cursor:pointer;border:2px solid transparent}
+.kid{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;border-radius:999px;background:#ffffff26;color:#fff;font-weight:700;cursor:pointer}
 .kid.on{background:#fff;color:var(--pri)}.kid .e{width:30px;height:30px;border-radius:50%;background:var(--acc);display:grid;place-items:center}
 .chip{flex:0 0 auto;padding:7px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);font-weight:700;font-size:14px;cursor:pointer}
 .chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
 .list{display:flex;flex-direction:column;gap:12px}
 .card{display:flex;gap:12px;background:#fff;border-radius:16px;padding:10px;border:1px solid var(--line);align-items:center}
-.th{width:64px;height:64px;border-radius:12px;display:grid;place-items:center;font-size:30px;flex:0 0 auto;position:relative}
-.free{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);background:var(--acc);border-radius:5px;padding:0 5px;font-size:10px;font-weight:900}
+.th{width:58px;height:58px;border-radius:12px;display:grid;place-items:center;font-size:28px;flex:0 0 auto;background:var(--bg)}
 .cb{flex:1;min-width:0}.cb h3{margin:0 0 3px;font-size:15px}.meta{color:var(--mut);font-size:12px}
-.acts{display:flex;flex-direction:column;align-items:center;gap:4px}
-.ib{background:none;border:0;font-size:22px;cursor:pointer;padding:4px}
-.dl{background:var(--pri);color:#fff;border:0;border-radius:10px;width:38px;height:38px;font-size:17px;cursor:pointer}
-.today{background:#fff;border-radius:18px;border:1px solid var(--line);padding:6px 14px}
-.ls{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}.ls:last-child{border:0}
+.acts{display:flex;gap:6px}
+.ib{background:none;border:0;font-size:20px;cursor:pointer;padding:4px}
+.sq{background:var(--pri);color:#fff;border:0;border-radius:10px;min-width:38px;height:38px;font:900 18px Nunito;cursor:pointer}
+.sq.l{background:var(--bg);color:var(--pri)}
+.type{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;background:var(--bg);color:var(--pri)}
+.today{background:#fff;border-radius:18px;border:1px solid var(--line);padding:4px 12px}
+.ls{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}.ls:last-child{border:0}
 .ck{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;color:#fff;font-weight:900;flex:0 0 auto}
 .ls.done .ck{background:var(--ok);border-color:var(--ok)}.ls.done b{text-decoration:line-through;color:var(--mut)}
-.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:4px 0 2px}.bar div{height:100%;background:var(--ok);transition:.4s}
-.empty{color:var(--mut);text-align:center;padding:30px 10px}
+.score{font-size:11px;font-weight:900;color:var(--ok)}
+.tm{font-size:12px;color:var(--mut);width:38px;flex:0 0 auto}.x{margin-left:auto;color:var(--mut);padding:6px;font-size:16px}
+.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:6px 0 2px}.bar div{height:100%;background:var(--ok);transition:.4s}
+.empty{color:var(--mut);text-align:center;padding:26px 10px}
 .prof{text-align:center;padding:30px 16px 10px}
 .av{width:84px;height:84px;border-radius:50%;background:var(--acc);display:grid;place-items:center;font-size:40px;margin:auto}
 .prof h2{margin:10px 0 2px}.prof p{color:var(--mut);margin:0}
 .box{margin:0 16px 16px;background:#fff;border-radius:16px;border:1px solid var(--line);overflow:hidden}
-.mi{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-weight:700;cursor:pointer}.mi:last-child{border:0}
+.mi{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700;cursor:pointer}.mi:last-child{border:0}
 .mi small{color:var(--mut);font-weight:400}
 .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;background:#fff;border-top:1px solid var(--line);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:9;box-shadow:0 -4px 20px #5b3fd614}
-.tab{flex:1;background:none;border:0;font:700 12px Nunito;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.tab{flex:1;background:none;border:0;font:700 11px Nunito;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
 .tab i{font-style:normal;font-size:22px;filter:grayscale(1);opacity:.6}
 .tab.on{color:var(--pri)}.tab.on i{filter:none;opacity:1}
 .page{display:none}.page.on{display:block}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;opacity:0;transition:.3s;font-size:14px;white-space:nowrap;pointer-events:none;z-index:20}
-/* auth */
-.auth-wrap{min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(160deg,var(--pri),var(--pri2))}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;opacity:0;transition:.3s;font-size:14px;white-space:nowrap;pointer-events:none;z-index:50}
+.full{min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(160deg,var(--pri),var(--pri2))}
 .hero{color:#fff;text-align:center;padding:50px 24px 30px}.hero .logo{font-size:38px}.hero p{opacity:.9;margin:6px 0 0}
 .sheet{background:#fff;flex:1;border-radius:28px 28px 0 0;padding:26px 22px}
+.who{display:flex;align-items:center;gap:14px;background:var(--bg);border-radius:20px;padding:18px;margin-bottom:14px;cursor:pointer;border:2px solid transparent}
+.who:hover{border-color:var(--pri)}.who .e{font-size:42px}.who b{font-size:20px;display:block}
 .seg{display:flex;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:18px}
 .seg button{flex:1;border:0;background:none;padding:10px;border-radius:9px;font:700 15px Nunito;color:var(--mut);cursor:pointer}
 .seg button.on{background:#fff;color:var(--pri);box-shadow:0 2px 6px #0001}
 label{display:block;font-weight:700;font-size:13px;margin:12px 0 5px}
-.in{width:100%;padding:13px 14px;border:2px solid var(--line);border-radius:12px;font:16px Nunito;outline:0;background:#fff}.in:focus{border-color:var(--pri)}
-.big{width:100%;margin-top:20px;padding:14px;border:0;border-radius:14px;background:var(--pri);color:#fff;font:900 16px Nunito;cursor:pointer}
+.in{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:12px;font:16px Nunito;outline:0;background:#fff;color:var(--ink)}.in:focus{border-color:var(--pri)}
+textarea.in{min-height:80px;resize:vertical}
+.big{display:block;text-align:center;text-decoration:none;width:100%;margin-top:14px;padding:14px;border:0;border-radius:14px;background:var(--pri);color:#fff;font:900 16px Nunito;cursor:pointer}
 .ghost{background:var(--bg);color:var(--pri)}
-.err{color:#e11d48;font-size:13px;margin-top:10px;min-height:18px}
+.link{background:none;border:0;color:var(--pri);font:700 14px Nunito;cursor:pointer;padding:10px;display:block;margin:6px auto 0}
+.err{color:var(--bad);font-size:13px;margin-top:10px;min-height:18px}
 .note{font-size:12px;color:var(--mut);text-align:center;margin-top:14px}
-/* modal */
 .modal{position:fixed;inset:0;background:#1f1b3a88;display:none;align-items:flex-end;justify-content:center;z-index:30}
-.modal.on{display:flex}.modal .sheet{flex:none;width:100%;max-width:440px}
+.modal.on{display:flex}.modal .sheet{flex:none;width:100%;max-width:440px;max-height:92vh;overflow:auto}
+.emo{display:flex;gap:8px;flex-wrap:wrap}.emo span{font-size:26px;padding:6px;border-radius:10px;cursor:pointer;border:2px solid transparent}.emo span.on{border-color:var(--pri);background:var(--bg)}
 .wk{display:flex;align-items:center;justify-content:space-between;margin:8px 0 12px;font-weight:700}.wk button{background:#ffffff26;border:0;color:#fff;width:34px;height:34px;border-radius:10px;font-size:20px;cursor:pointer}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .day{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 0;text-align:center;cursor:pointer;font-size:12px;font-weight:700;color:var(--mut)}
 .day b{display:block;font-size:17px;color:var(--ink)}.day.on{background:var(--pri);border-color:var(--pri);color:#fff}.day.on b{color:#fff}
 .day.now{border:2px solid var(--acc)}.dots{font-size:9px;letter-spacing:1px;height:10px;color:var(--ok)}
-.tm{font-size:12px;color:var(--mut);width:40px;flex:0 0 auto}.x{margin-left:auto;color:var(--mut);padding:6px;font-size:16px}
-.bday{background:linear-gradient(90deg,#ff7a59,#ffb703);color:#fff;border-radius:16px;padding:14px;font-weight:900;text-align:center}
-.tab{font-size:11px}
-.emo{display:flex;gap:8px;flex-wrap:wrap}.emo span{font-size:26px;padding:6px;border-radius:10px;cursor:pointer;border:2px solid transparent}.emo span.on{border-color:var(--pri);background:var(--bg)}
+.bday{background:linear-gradient(90deg,#ff7a59,#ffb703);color:#fff;border-radius:16px;padding:14px;font-weight:900;text-align:center;margin-bottom:12px}
+#reader{width:100%;border-radius:16px;overflow:hidden;background:#000;min-height:260px}
+#qrBox{display:grid;place-items:center;padding:16px;background:#fff}
+#player{position:fixed;inset:0;background:var(--bg);z-index:40;display:none;overflow:auto}
+#player.on{display:block}
+.pw{max-width:440px;margin:auto;padding:0 16px 40px}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 0;font-weight:900;font-size:17px;position:sticky;top:0;background:var(--bg)}
+.pbar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin:6px 0 18px}.pbar div{height:100%;background:var(--pri);transition:.3s}
+.qq{font-size:24px;font-weight:900;margin:10px 0 20px;line-height:1.3;word-wrap:break-word}
+.opt{display:block;width:100%;text-align:left;padding:16px;margin-bottom:10px;border-radius:14px;border:2px solid var(--line);background:#fff;font:700 18px Nunito;cursor:pointer;color:var(--ink)}
+.opt.ok{background:#dcfce7;border-color:var(--ok)}.opt.bad{background:#fee2e2;border-color:var(--bad)}
+.celebrate{text-align:center;padding:40px 0}.celebrate .e{font-size:80px}
+#sheetDoc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;font-size:16px}
+#sheetDoc h2{margin:0 0 6px}#sheetDoc li{margin:0 0 16px;line-height:1.5}
+.dbox{border:2px dashed #bbb;border-radius:10px;height:180px;margin:10px 0 16px}
+@media print{body *{visibility:hidden}#sheetDoc,#sheetDoc *{visibility:visible}#sheetDoc{position:absolute;left:0;top:0;width:100%;border:0}}
 </style>
 </head>
-<body><div class="app" id="app">
+<body><div class="app bare" id="app">
 
-<!-- AUTH -->
-<div class="page" id="auth"><div class="auth-wrap">
+<!-- START: who are you -->
+<div class="page" id="start"><div class="full">
   <div class="hero"><div class="logo">Glimm<span>r</span>✨</div><p>Homeschooling made simple & joyful</p></div>
+  <div class="sheet">
+    <h2 style="margin:0 0 16px">Who's using Glimmr?</h2>
+    <div class="who" onclick="goParent()"><span class="e">👩‍🏫</span><div><b>I'm a parent</b><span class="meta">Plan the week and set work</span></div></div>
+    <div class="who" onclick="goChild()"><span class="e">🧒</span><div><b>I'm a learner</b><span class="meta">Scan your QR code to see your work</span></div></div>
+  </div>
+</div></div>
+
+<!-- PARENT AUTH -->
+<div class="page" id="auth"><div class="full">
+  <div class="hero"><div class="logo">Glimm<span>r</span>✨</div><p>Parent account</p></div>
   <div class="sheet">
     <div class="seg"><button class="on" data-m="in">Log in</button><button data-m="up">Sign up</button></div>
     <form id="af">
@@ -90,31 +120,47 @@ label{display:block;font-weight:700;font-size:13px;margin:12px 0 5px}
       <div class="err" id="aErr"></div>
       <button class="big" id="aBtn">Log in</button>
     </form>
-    <div class="note">Your account syncs across all your devices 🔒</div>
+    <button class="link" onclick="show('start')">‹ Back</button>
   </div>
 </div></div>
 
-<!-- HOME -->
+<!-- CHILD SCAN -->
+<div class="page" id="scan"><div class="full">
+  <div class="hero" style="padding-bottom:20px"><div class="logo">Scan your code 📷</div><p>Ask a grown-up for your QR code</p></div>
+  <div class="sheet">
+    <div id="reader"></div>
+    <div class="err" id="scanErr"></div>
+    <div class="note">Or point your phone's camera app at the code.</div>
+    <button class="link" onclick="stopScan();show('start')">‹ Back</button>
+  </div>
+</div></div>
+
+<!-- CHILD HOME -->
+<div class="page" id="child">
+  <div class="top">
+    <div class="logo" id="cHi">Hi!</div>
+    <p id="cSub" style="margin:4px 0 0"></p>
+  </div>
+  <div class="sec"><div id="cBday"></div><div class="days" id="cDays"></div></div>
+  <div class="sec"><h2 id="cDayH"></h2><div class="today" id="cList"></div>
+    <div style="margin-top:8px"><div class="bar"><div id="cProg"></div></div><div class="meta" id="cProgT"></div></div>
+  </div>
+  <button class="link" onclick="show('start')">Switch user</button>
+</div>
+
+<!-- PARENT HOME -->
 <div class="page" id="home">
   <div class="top">
     <div class="logo" id="hi">Hi!</div>
     <p>Who's learning today?</p>
     <div class="hs" id="kids"></div>
   </div>
-  <div class="sec"><h2 id="todayH">Today's lessons</h2>
+  <div class="sec"><div id="bday"></div><h2 id="todayH">Today</h2>
     <div class="today" id="today"></div>
     <div style="margin-top:8px"><div class="bar"><div id="prog"></div></div><div class="meta" id="progT"></div></div>
   </div>
-  <div class="sec"><div class="search">🔍<input id="q" placeholder="Search lessons, worksheets…"></div></div>
-  <div class="sec"><div class="hs" id="chips"></div></div>
-  <div class="sec"><h2 id="recH">Recommended</h2><div class="list" id="grid"></div></div>
-</div>
-
-<!-- LIBRARY -->
-<div class="page" id="library">
-  <div class="top"><div class="logo">My Library</div><p style="margin:4px 0 0">Saved & downloaded resources</p></div>
-  <div class="sec"><div class="hs"><div class="chip on" data-l="saved">❤️ Saved</div><div class="chip" data-l="dl">⬇ Downloads</div></div></div>
-  <div class="sec"><div class="list" id="lib"></div></div>
+  <div class="sec"><h2 id="recH">Suggested work</h2><div class="list" id="rec"></div>
+    <button class="big ghost" onclick="show('work')">Browse all work</button></div>
 </div>
 
 <!-- TIMETABLE -->
@@ -126,9 +172,16 @@ label{display:block;font-weight:700;font-size:13px;margin:12px 0 5px}
   </div>
   <div class="sec"><div class="days" id="days"></div></div>
   <div class="sec"><h2 id="dayH"></h2><div class="today" id="dayList"></div>
-    <button class="big" onclick="openLesson()">＋ Add lesson</button>
-    <button class="big ghost" style="margin-top:8px" onclick="copyDay()">Copy this day to every weekday</button>
+    <button class="big" onclick="openAssign()">＋ Add work</button>
   </div>
+</div>
+
+<!-- WORK LIBRARY -->
+<div class="page" id="work">
+  <div class="top"><div class="logo">Work</div><p id="workSub">Ready-made activities to assign</p>
+    <div class="search">🔍<input id="q" placeholder="Search work…"></div></div>
+  <div class="sec"><div class="hs" id="chips"></div><div class="hs" id="tchips" style="margin-top:8px"></div></div>
+  <div class="sec"><div class="list" id="grid"></div></div>
 </div>
 
 <!-- PROFILE -->
@@ -136,22 +189,17 @@ label{display:block;font-weight:700;font-size:13px;margin:12px 0 5px}
   <div class="prof"><div class="av">🏡</div><h2 id="pName"></h2><p id="pEmail"></p></div>
   <div class="sec" style="padding-top:6px"><h2>My learners</h2></div>
   <div class="box" id="kidList"></div>
-  <div class="box">
-    <div class="mi">⭐ Upgrade to Family Plus<span>›</span></div>
-    <div class="mi">📅 Weekly schedule<span>›</span></div>
-    <div class="mi">📄 Progress reports<span>›</span></div>
-    <div class="mi">⚙️ Settings<span>›</span></div>
-    <div class="mi" id="logout" style="color:#e11d48">🚪 Log out<span>›</span></div>
-  </div>
+  <div class="box"><div class="mi" id="logout" style="color:var(--bad)">🚪 Log out<span>›</span></div></div>
 </div>
 
-<nav class="tabbar" id="tabbar">
-  <button class="tab on" data-p="home"><i>🏠</i>Home</button>
+<nav class="tabbar" id="tabbar" style="display:none">
+  <button class="tab" data-p="home"><i>🏠</i>Home</button>
   <button class="tab" data-p="timetable"><i>📅</i>Timetable</button>
-  <button class="tab" data-p="library"><i>📚</i>Library</button>
+  <button class="tab" data-p="work"><i>📚</i>Work</button>
   <button class="tab" data-p="profile"><i>👤</i>Profile</button>
 </nav>
 
+<!-- add learner -->
 <div class="modal" id="kidModal"><div class="sheet">
   <h2 style="margin:0">Add a learner</h2>
   <label>Name</label><input class="in" id="kName" placeholder="e.g. Leo">
@@ -159,79 +207,166 @@ label{display:block;font-weight:700;font-size:13px;margin:12px 0 5px}
   <label>Avatar</label><div class="emo" id="kEmo"></div>
   <div class="err" id="kErr"></div>
   <button class="big" id="kSave">Add learner</button>
-  <button class="big ghost" id="kCancel" style="margin-top:8px">Cancel</button>
+  <button class="big ghost" onclick="closeM('kidModal')">Cancel</button>
 </div></div>
-<div class="modal" id="lesModal"><div class="sheet">
-  <h2 style="margin:0" id="lesH">Add lesson</h2>
-  <label>Time</label><input class="in" id="lTime" type="time" value="09:00">
-  <label>Subject</label><select class="in" id="lSub"></select>
-  <label>Lesson</label><select class="in" id="lRes"></select>
-  <input class="in" id="lCustom" placeholder="Or type your own lesson…" style="margin-top:8px">
-  <label>Repeat</label><select class="in" id="lRep"><option value="1">Just this day</option><option value="5">Every weekday</option></select>
-  <button class="big" id="lSave">Add lesson</button>
-  <button class="big ghost" style="margin-top:8px" onclick="$('lesModal').classList.remove('on')">Cancel</button>
+
+<!-- assign work -->
+<div class="modal" id="asModal"><div class="sheet">
+  <h2 style="margin:0" id="asH">Add work</h2>
+  <label>Work</label><select class="in" id="asWork"></select>
+  <div id="asCustom" style="display:none">
+    <label>Title</label><input class="in" id="cT" placeholder="e.g. Read chapter 3">
+    <label>Subject</label><select class="in" id="cS"></select>
+    <label>Type</label><select class="in" id="cY"><option value="paper">📝 Paper / offline</option><option value="video">🎬 Video</option><option value="digital">💻 Online link</option></select>
+    <label>Link (optional)</label><input class="in" id="cL" placeholder="https://…">
+    <label>Instructions</label><textarea class="in" id="cN" placeholder="What should they do? One step per line."></textarea>
+  </div>
+  <label>Day</label><input class="in" id="asDate" type="date">
+  <label>Time</label><input class="in" id="asTime" type="time" value="09:00">
+  <label>Repeat</label><select class="in" id="asRep"></select>
+  <div class="err" id="asErr"></div>
+  <button class="big" id="asSave">Add to timetable</button>
+  <button class="big ghost" onclick="closeM('asModal')">Cancel</button>
 </div></div>
+
+<!-- QR -->
+<div class="modal" id="qrModal"><div class="sheet" style="text-align:center">
+  <h2 style="margin:0" id="qrH">Login code</h2>
+  <p class="meta">Scan this on your child's device to log them in.</p>
+  <div id="qrBox"></div>
+  <button class="big ghost" id="qrNew">Make a new code (old one stops working)</button>
+  <button class="big" onclick="closeM('qrModal')">Done</button>
+</div></div>
+
+<!-- generic choice -->
+<div class="modal" id="askModal"><div class="sheet"><h2 style="margin:0 0 6px" id="askH"></h2><div id="askB"></div></div></div>
+
+<div id="player"><div class="pw" id="pw"></div></div>
 <div class="toast" id="toast"></div>
 </div>
 
 <script>
 const $=id=>document.getElementById(id);
-const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
-async function hash(s){if(!window.crypto?.subtle){let h=5381;for(const c of s)h=(h*33^c.charCodeAt(0))>>>0;return "d"+h.toString(16)}const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
-
-// [title, subject, minAge, maxAge, emoji, colour, free]
-const R=[
-["Letter Sounds Phonics Pack","English",4,6,"🔤","#fde68a",1],
-["Counting to 20 Games","Maths",4,6,"🔢","#bfdbfe",1],
-["Colour Mixing Experiment","Art",4,7,"🎨","#fbcfe8",1],
-["Life Cycle of a Butterfly","Science",5,8,"🦋","#bbf7d0",1],
-["Fractions Pizza Worksheets","Maths",6,9,"🍕","#fed7aa",1],
-["Great Fire of London Story","History",5,8,"🔥","#fecdd3",0],
-["Times Tables Bingo 1–12","Maths",7,11,"✖️","#bfdbfe",0],
-["Romans Unit Study","History",7,11,"🏛️","#fecaca",0],
-["Solar System Project","Science",7,11,"🪐","#c7d2fe",1],
-["Rivers of the World Map","Geography",8,11,"🗺️","#a5f3fc",0],
-["Creative Writing Journal","English",9,14,"✍️","#e9d5ff",0],
-["Algebra Basics Booklet","Maths",11,14,"📐","#d9f99d",0],
-["Volcano Fact File","Geography",9,14,"🌋","#fdba74",1],
-["Chemistry Kitchen Lab","Science",11,16,"🧪","#bbf7d0",0],
-["Shakespeare for Teens","English",13,16,"🎭","#e9d5ff",0],
-["Nature Journal Walk","Science",4,16,"🍃","#d9f99d",1]];
-const subjects=["All","English","Maths","Science","History","Geography","Art"];
-const EMO=["🦊","🐻","🐼","🦁","🐸","🦄","🐙","🚀"];
-
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const LS={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch{}}};
 const sb=supabase.createClient("https://rfiuaaecacvdslumxzpb.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmaXVhYWVjYWN2ZHNsdW14enBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4ODY2NTEsImV4cCI6MjEwNjQ2MjY1MX0.Lg8CV-32bha0pyO96cS60mVGCruamWbC9EVWhsVRgu4");
-let me=null,uid=null,data=null,saveT;
-let sub="All",lib="saved",mode="in",emo=EMO[0],wk=0,selDay=(new Date().getDay()+6)%7;
-const U=()=>data;
-function save(){clearTimeout(saveT);saveT=setTimeout(async()=>{const {error}=await sb.from("profiles").upsert({id:uid,data,updated_at:new Date().toISOString()});if(error)toast("⚠️ Couldn't save: "+error.message)},400)}
-async function load(user){me=user.email;uid=user.id;
- const {data:row,error}=await sb.from("profiles").select("data").eq("id",uid).maybeSingle();
- if(error){show("auth");$("aErr").textContent="Couldn't load your data: "+error.message;return}
- data=row?.data||{name:user.user_metadata?.name||me.split("@")[0],kids:[],saved:[],dls:[],done:{}};
- start()}
-const kid=()=>U().kids.find(k=>k.id==U().active)||U().kids[0];
-const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+// ================= WORK BANK =================
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[rnd(0,a.length-1)];
+const shuf=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+const N=(n,f)=>Array.from({length:n},f);
+function mc(q,c,w){const o=shuf([c,...w]);return{q,o,a:o.indexOf(c)}}
+function num(q,c,neg){const w=new Set();while(w.size<3){const d=c+rnd(-5,5);if(d!=c&&(neg||d>0))w.add(d)}return mc(q,String(c),[...w].map(String))}
+const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
+const TY={digital:"💻 Digital",paper:"📝 Paper",video:"🎬 Video"};
+const SUBJ=["English","Maths","Science","History","Geography","Art","Music","PE"];
+const BOX="[BOX]";
+const W=[
+// ---- Maths
+{id:"m1",t:"Counting Objects",s:"Maths",min:4,max:6,type:"digital",e:"🍎",d:"Count the pictures and pick the right number.",gen:()=>N(8,()=>{const n=rnd(1,10);return num("How many? "+pick(["🍎","⭐","🐟","🚗","🌸"]).repeat(n),n)})},
+{id:"m2",t:"Adding within 10",s:"Maths",min:4,max:6,type:"digital",e:"➕",d:"Add two small numbers together.",gen:()=>N(10,()=>{const a=rnd(0,5),b=rnd(1,5);return num(`${a} + ${b} = ?`,a+b)})},
+{id:"m3",t:"Number Bonds to 20",s:"Maths",min:5,max:7,type:"paper",e:"🔟",d:"Fill in the missing number to make 20.",sheet:()=>N(15,()=>`${rnd(1,19)} + ____ = 20`)},
+{id:"m4",t:"Add & Subtract to 20",s:"Maths",min:5,max:8,type:"digital",e:"🧮",d:"Mixed adding and taking away.",gen:()=>N(10,()=>{if(Math.random()<.5){const a=rnd(5,20),b=rnd(1,a);return num(`${a} − ${b} = ?`,a-b,1)}const a=rnd(1,15),b=rnd(1,20-a);return num(`${a} + ${b} = ?`,a+b)})},
+{id:"m5",t:"Times Tables Challenge",s:"Maths",min:7,max:11,type:"digital",e:"✖️",d:"Quick-fire multiplication up to 12 × 12.",gen:()=>N(12,()=>{const a=rnd(2,12),b=rnd(2,12);return num(`${a} × ${b} = ?`,a*b)})},
+{id:"m6",t:"Column Addition Sheet",s:"Maths",min:7,max:10,type:"paper",e:"📊",d:"Write each sum in columns and add. Show your working.",sheet:()=>N(12,()=>`${rnd(100,899)} + ${rnd(100,899)} = ________`)},
+{id:"m7",t:"Fractions of Amounts",s:"Maths",min:8,max:11,type:"digital",e:"🍕",d:"Find a fraction of a number.",gen:()=>N(10,()=>{const d=pick([2,3,4,5,10]),k=rnd(2,12);return num(`What is 1/${d} of ${d*k}?`,k)})},
+{id:"m8",t:"Understanding Fractions",s:"Maths",min:7,max:10,type:"video",e:"🥧",d:"Watch a video about fractions, then answer the questions.",yt:"fractions for kids explained",q:[["What is the bottom number of a fraction called?","Denominator",["Numerator","Divider","Total"]],["Which is the biggest?","1/2",["1/4","1/8","1/10"]],["A pizza is cut into 4 equal slices. Each slice is…","1/4",["1/2","1/3","4"]]]},
+{id:"m9",t:"Solve for x",s:"Maths",min:11,max:16,type:"digital",e:"🔣",d:"Solve each linear equation.",gen:()=>N(10,()=>{const x=rnd(-5,12),a=rnd(2,9),b=rnd(-10,20);return num(`Solve: ${a}x ${b<0?"−":"+"} ${Math.abs(b)} = ${a*x+b}`,x,1)})},
+{id:"m10",t:"Percentages",s:"Maths",min:11,max:16,type:"digital",e:"💯",d:"Work out percentages of amounts.",gen:()=>N(10,()=>{const p=pick([10,20,25,50,75]),n=rnd(1,20)*20;return num(`What is ${p}% of ${n}?`,p*n/100)})},
+{id:"m11",t:"Long Multiplication Sheet",s:"Maths",min:10,max:14,type:"paper",e:"📝",d:"Use the column method. Show all your working.",sheet:()=>N(10,()=>`${rnd(12,99)} × ${rnd(12,99)} = ________`)},
+{id:"m12",t:"Types of Angles",s:"Maths",min:8,max:13,type:"video",e:"📐",d:"Learn about acute, right and obtuse angles.",yt:"types of angles for kids",q:[["A right angle is…","90°",["45°","180°","360°"]],["An angle smaller than 90° is…","acute",["obtuse","reflex","straight"]],["Angles in a triangle add up to…","180°",["90°","360°","100°"]]]},
+// ---- English
+{id:"e1",t:"Letter Sounds",s:"English",min:4,max:6,type:"digital",e:"🔤",d:"Listen to the sounds at the start of words.",q:[["Which word starts with 's'?","sun",["cat","dog","mop"]],["Which word starts with 'b'?","ball",["tree","fish","hat"]],["Which word starts with 'm'?","moon",["sock","pig","egg"]],["Which word rhymes with 'cat'?","hat",["cup","dog","bed"]],["Which word rhymes with 'pig'?","wig",["pan","log","sun"]],["Which word starts with 'sh'?","ship",["chip","sip","hip"]]]},
+{id:"e2",t:"Handwriting a–j",s:"English",min:4,max:6,type:"paper",e:"✏️",d:"Trace each letter, then write it 5 more times.",sheet:()=>"abcdefghij".split("").map(l=>`${l}  ${l}  ${l}   __________________________`)},
+{id:"e3",t:"Phonics Song",s:"English",min:4,max:6,type:"video",e:"🎵",d:"Sing along with the alphabet sounds.",yt:"jolly phonics song a to z",q:[["What sound does 'a' make in 'apple'?","a as in apple",["ay","ee","oh"]],["Which letter makes a 'sssss' snake sound?","s",["z","c","f"]]]},
+{id:"e4",t:"Spelling Check",s:"English",min:6,max:9,type:"digital",e:"🐝",d:"Pick the correct spelling.",q:[["because",["becuase","becos","beacause"]],["friend",["freind","frend","friand"]],["Wednesday",["Wensday","Wednsday","Wedensday"]],["beautiful",["beutiful","beautifull","butiful"]],["said",["sed","siad","sayed"]],["people",["peeple","poeple","pepole"]]].map(([c,w])=>["Which is spelled correctly?",c,w])},
+{id:"e5",t:"Nouns, Verbs & Adjectives",s:"English",min:7,max:11,type:"digital",e:"🧩",d:"Spot the word types in each sentence.",q:[["In 'The dog ran fast', which word is the verb?","ran",["dog","the","fast"]],["Which word is an adjective?","shiny",["jump","table","quickly"]],["Which word is a noun?","garden",["sing","happy","slowly"]],["In 'She sang beautifully', which word is the adverb?","beautifully",["she","sang","none"]],["Which is a proper noun?","London",["city","river","bridge"]]]},
+{id:"e6",t:"Write a Story",s:"English",min:7,max:11,type:"paper",e:"📖",d:"Plan and write your own adventure story.",sheet:()=>["Who is your main character? Describe them: ____________________","Where does your story happen? ____________________","What problem happens? ____________________","How is the problem solved? ____________________","Now write your story (at least 1 page). Use 3 adjectives, 2 time words (First, Suddenly…) and speech marks."]},
+{id:"e7",t:"Punctuation Power",s:"English",min:8,max:12,type:"digital",e:"❗",d:"Choose the correctly punctuated option.",q:[["Which sentence is punctuated correctly?","Where are you going?",["where are you going.","Where are you going","where are you going?"]],["The bone belongs to one dog. Which is correct?","the dog's bone",["the dogs' bone","the dogs bone","the dog,s bone"]],["Pick the correct speech punctuation","\"Come here,\" said Mum.",["\"Come here\" said Mum.","Come here, said Mum.","\"Come here,\" said Mum"]],["'We went to paris in may.' Which words need capitals?","paris and may",["went and in","we only","to and in"]]]},
+{id:"e8",t:"Persuasive Letter",s:"English",min:10,max:14,type:"paper",e:"✉️",d:"Write a letter persuading your council to build a new park.",sheet:()=>["Write your address and the date at the top right.","Opening: say who you are and what you want.","Give 3 reasons, each in its own paragraph. Use facts and feelings.","Answer one argument against your idea.","Closing: a strong final sentence. Sign off 'Yours faithfully'.","Check: rhetorical question ✓  'Furthermore' ✓  'In conclusion' ✓"]},
+{id:"e9",t:"Literary Devices",s:"English",min:11,max:16,type:"digital",e:"🎭",d:"Identify the language technique.",q:[["'As brave as a lion' is a…","simile",["metaphor","onomatopoeia","alliteration"]],["'The classroom was a zoo' is a…","metaphor",["simile","personification","hyperbole"]],["'Sally sells seashells' uses…","alliteration",["rhyme","simile","irony"]],["'The wind whispered' is…","personification",["onomatopoeia","metaphor","oxymoron"]],["'Buzz', 'bang' and 'sizzle' are…","onomatopoeia",["alliteration","hyperbole","similes"]]]},
+{id:"e10",t:"Romeo & Juliet Summary",s:"English",min:12,max:16,type:"video",e:"🌹",d:"Watch a summary of Shakespeare's play.",yt:"Romeo and Juliet summary for students",q:[["Which families are feuding?","Montagues and Capulets",["Smiths and Joneses","Macbeths and Banquos","Tudors and Yorks"]],["Where is the play set?","Verona",["London","Venice","Rome"]]]},
+// ---- Science
+{id:"s1",t:"Animals & Their Homes",s:"Science",min:4,max:7,type:"digital",e:"🐦",d:"Match animals to where they live.",q:[["Where does a bird live?","nest",["hive","burrow","web"]],["Where does a bee live?","hive",["nest","den","pond"]],["Where does a rabbit live?","burrow",["web","hive","shell"]],["Where does a fish live?","water",["tree","desert","nest"]],["Which animal lays eggs?","chicken",["dog","cow","cat"]]]},
+{id:"s2",t:"Life Cycle of a Butterfly",s:"Science",min:5,max:8,type:"video",e:"🦋",d:"See how a caterpillar becomes a butterfly.",yt:"life cycle of a butterfly for kids",q:[["What hatches from a butterfly egg?","caterpillar",["tadpole","chick","worm"]],["The stage inside a hard case is called a…","chrysalis",["nest","larva","shell"]],["How many stages are in the life cycle?","4",["2","3","6"]]]},
+{id:"s3",t:"Label a Plant",s:"Science",min:5,max:9,type:"paper",e:"🌻",d:"Draw and label the parts of a flowering plant.",sheet:()=>["Draw a flowering plant in the box.",BOX,"Label: roots, stem, leaves, flower, petals.","What do the roots do? ____________________","What do leaves need to make food? ____________________"]},
+{id:"s4",t:"Solar System Quiz",s:"Science",min:7,max:11,type:"digital",e:"🪐",d:"How well do you know our planets?",q:[["Which planet is closest to the Sun?","Mercury",["Venus","Earth","Mars"]],["Which is the largest planet?","Jupiter",["Saturn","Earth","Neptune"]],["What is the Sun?","a star",["a planet","a moon","a comet"]],["Which planet is called the Red Planet?","Mars",["Jupiter","Venus","Uranus"]],["How long does Earth take to orbit the Sun?","about 365 days",["24 hours","30 days","10 years"]]]},
+{id:"s5",t:"States of Matter",s:"Science",min:8,max:12,type:"digital",e:"🧊",d:"Solids, liquids and gases.",q:[["Ice is a…","solid",["liquid","gas","plasma"]],["Water turning into steam is called…","evaporation",["condensation","freezing","melting"]],["Which is a gas?","oxygen",["milk","wood","sand"]],["Gas turning into liquid is called…","condensation",["evaporation","melting","dissolving"]],["Pure water freezes at…","0°C",["100°C","10°C","-50°C"]]]},
+{id:"s6",t:"The Water Cycle",s:"Science",min:7,max:11,type:"video",e:"💧",d:"Follow a raindrop around the world.",yt:"water cycle for kids",q:[["What forms when water vapour cools in the sky?","clouds",["rivers","ice","sand"]],["Rain, snow and hail are called…","precipitation",["evaporation","collection","condensation"]]]},
+{id:"s7",t:"Float or Sink?",s:"Science",min:5,max:9,type:"paper",e:"🛁",d:"You need a bowl of water and 6 small objects. Predict, then test!",sheet:()=>[...N(6,(_,i)=>`Object ${i+1}: ____________   I predict: float / sink   Result: float / sink`),"What do the floating objects have in common? ____________________"]},
+{id:"s8",t:"Cells & Organelles",s:"Science",min:11,max:16,type:"digital",e:"🔬",d:"Animal and plant cell structures.",q:[["Which part controls the cell's activities?","nucleus",["cell membrane","cytoplasm","ribosome"]],["Where does respiration happen?","mitochondria",["nucleus","cell wall","vacuole"]],["Found in plant cells but not animal cells:","cell wall",["nucleus","cytoplasm","cell membrane"]],["Photosynthesis happens in the…","chloroplasts",["mitochondria","nucleus","ribosomes"]],["Groups of similar cells form a…","tissue",["organ","system","organism"]]]},
+{id:"s9",t:"Ramp Investigation",s:"Science",min:10,max:14,type:"paper",e:"🚗",d:"Does ramp height change how far a toy car travels?",sheet:()=>["Prediction: ____________________","Variable you change: ________  Variable you measure: ________","Keep the same (fair test): ____________________",...[1,2,3,4].map(h=>`Ramp height ${h*5} cm → distance: Try 1 ____ Try 2 ____ Average ____`),"Draw a bar chart of your results.",BOX,"Conclusion: ____________________"]},
+// ---- History
+{id:"h1",t:"The Great Fire of London",s:"History",min:5,max:8,type:"video",e:"🔥",d:"Find out what happened in 1666.",yt:"Great Fire of London for kids",q:[["In what year was the Great Fire of London?","1666",["1066","1966","1500"]],["Where did the fire start?","a bakery on Pudding Lane",["a castle","a church","a ship"]],["Who wrote a famous diary about the fire?","Samuel Pepys",["William Shakespeare","Henry VIII","Isaac Newton"]]]},
+{id:"h2",t:"Romans Quiz",s:"History",min:7,max:11,type:"digital",e:"🏛️",d:"Test your Roman knowledge.",q:[["What language did the Romans speak?","Latin",["Greek","English","French"]],["Who was the first Roman emperor?","Augustus",["Julius Caesar","Nero","Hadrian"]],["Which wall did Romans build in northern Britain?","Hadrian's Wall",["The Great Wall","Berlin Wall","Offa's Dyke"]],["Roman soldiers were called…","legionaries",["knights","samurai","vikings"]],["What did the Romans call London?","Londinium",["Lundenwic","Rome","Camulodunum"]]]},
+{id:"h3",t:"Timeline of My Life",s:"History",min:5,max:8,type:"paper",e:"📆",d:"Make a timeline of important moments in your life.",sheet:()=>["The year I was born: ______","Draw a line across a big piece of paper. Mark each year of your life.","Add at least 5 events (e.g. first steps, new pet, holiday).","Draw a small picture for each event.","Which was your favourite moment? Why? ____________________"]},
+{id:"h4",t:"Ancient Egypt",s:"History",min:7,max:11,type:"video",e:"🐫",d:"Pyramids, pharaohs and the Nile.",yt:"Ancient Egypt for kids",q:[["Egyptian kings were called…","pharaohs",["emperors","chiefs","sultans"]],["Which river was important to Egypt?","the Nile",["the Thames","the Amazon","the Danube"]],["Egyptian picture writing is called…","hieroglyphics",["runes","Latin","emoji"]]]},
+{id:"h5",t:"World War II Quiz",s:"History",min:10,max:16,type:"digital",e:"✈️",d:"Key facts about 1939–1945.",q:[["When did World War II begin?","1939",["1914","1945","1918"]],["Children moved to the countryside for safety were called…","evacuees",["refugees","soldiers","pilots"]],["Who was Britain's Prime Minister for most of the war?","Winston Churchill",["Neville Chamberlain","Clement Attlee","Margaret Thatcher"]],["The Battle of Britain was fought mainly…","in the air",["at sea","in the desert","underground"]],["When did the war end in Europe?","1945",["1940","1950","1939"]]]},
+// ---- Geography
+{id:"g1",t:"Continents & Oceans",s:"Geography",min:6,max:10,type:"digital",e:"🌍",d:"Explore the world map.",q:[["How many continents are there?","7",["5","6","9"]],["Which is the largest ocean?","Pacific",["Atlantic","Indian","Arctic"]],["Which continent is the UK in?","Europe",["Asia","Africa","North America"]],["Which is the coldest continent?","Antarctica",["Europe","Asia","Australia"]],["Egypt is in which continent?","Africa",["Asia","Europe","South America"]]]},
+{id:"g2",t:"Map My Home",s:"Geography",min:5,max:9,type:"paper",e:"🗺️",d:"Draw a bird's-eye map of your home or street.",sheet:()=>["Draw your map in the box. Imagine you are a bird looking down!",BOX,"Make a key with at least 4 symbols (e.g. tree 🌳, door 🚪).","Add a compass: N, E, S, W.","What is north of your front door? ____________________"]},
+{id:"g3",t:"How Volcanoes Work",s:"Geography",min:8,max:12,type:"video",e:"🌋",d:"Find out why volcanoes erupt.",yt:"how volcanoes work for kids",q:[["Melted rock underground is called…","magma",["lava","ash","basalt"]],["Melted rock above ground is called…","lava",["magma","mud","quartz"]],["Most volcanoes are found at…","plate boundaries",["the equator","the poles","deserts"]]]},
+{id:"g4",t:"Capital Cities",s:"Geography",min:9,max:16,type:"digital",e:"🏙️",d:"Name the capitals of countries.",q:[["France","Paris",["Lyon","Marseille","Nice"]],["Japan","Tokyo",["Kyoto","Osaka","Seoul"]],["Australia","Canberra",["Sydney","Melbourne","Perth"]],["Canada","Ottawa",["Toronto","Vancouver","Montreal"]],["Spain","Madrid",["Barcelona","Seville","Lisbon"]],["Egypt","Cairo",["Alexandria","Giza","Luxor"]]].map(([c,a,w])=>[`What is the capital of ${c}?`,a,w])},
+{id:"g5",t:"Weather Diary",s:"Geography",min:4,max:8,type:"paper",e:"⛅",d:"Look outside each day and record the weather.",sheet:()=>[...["Monday","Tuesday","Wednesday","Thursday","Friday"].map(d=>`${d}:  ☀️  🌧️  ☁️  ❄️  💨   (circle)    Hot / Warm / Cold`),"Which day had the best weather? ______"]},
+// ---- Art / Music / PE
+{id:"a1",t:"Colour Mixing",s:"Art",min:4,max:7,type:"paper",e:"🎨",d:"You need red, yellow and blue paint.",sheet:()=>["Red + yellow = ________ (paint it below)","Blue + yellow = ________","Red + blue = ________",BOX,"Paint a picture using only your 3 new colours!"]},
+{id:"a2",t:"Painting like Van Gogh",s:"Art",min:7,max:12,type:"video",e:"🌌",d:"Learn about The Starry Night, then paint your own.",yt:"Van Gogh Starry Night art lesson for kids",q:[["Which painting is Van Gogh famous for?","The Starry Night",["Mona Lisa","The Scream","Water Lilies"]],["Van Gogh was from…","the Netherlands",["Spain","Italy","USA"]]]},
+{id:"mu1",t:"Clap the Rhythm",s:"Music",min:5,max:10,type:"video",e:"🥁",d:"Clap along and learn about beat and rhythm.",yt:"rhythm for kids music lesson clapping",q:[["A steady beat that stays the same speed is called the…","pulse",["pitch","melody","volume"]],["How high or low a note sounds is its…","pitch",["tempo","rhythm","dynamics"]]]},
+{id:"p1",t:"Kids Yoga",s:"PE",min:4,max:11,type:"video",e:"🧘",d:"Get moving with a yoga adventure. Find some floor space!",yt:"cosmic kids yoga"},
+{id:"p2",t:"Fitness Circuit",s:"PE",min:6,max:16,type:"paper",e:"🏃",d:"Do each exercise for 30 seconds, rest 15 seconds. Repeat 3 times!",sheet:()=>["Star jumps","Squats","Running on the spot","Plank","Hopping on one leg (swap halfway)","Bear crawl","How do you feel afterwards? ____________________"]},
+];
+const WI=Object.fromEntries(W.map(w=>[w.id,w]));
+const qsOf=w=>w.gen?w.gen():(w.q||[]).map(([q,c,ws])=>mc(q,c,ws));
+
+// ================= STATE / DATES =================
+let me=null,uid=null,data=null,saveT,childT=null,CH=null,RES={},scanner=null;
+let sub="All",tsub="All",mode="in",emo,wk=0,selDay=(new Date().getDay()+6)%7,cDay=selDay;
+const EMO=["🦊","🐻","🐼","🦁","🐸","🦄","🐙","🚀"];
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],DAYL=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const todayKey=()=>ymd(new Date());
+const dowOf=s=>(new Date(s+"T00:00").getDay()+6)%7;
 function weekStart(off){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7+off*7);return d}
-const dayDate=i=>{const d=weekStart(wk);d.setDate(d.getDate()+i);return d};
-function ageOf(k){if(!k.dob)return k.age||7;const b=new Date(k.dob+"T00:00"),n=new Date();let a=n.getFullYear()-b.getFullYear();if(n.getMonth()<b.getMonth()||(n.getMonth()==b.getMonth()&&n.getDate()<b.getDate()))a--;return Math.max(a,0)}
+const dayDate=(i,off=wk)=>{const d=weekStart(off);d.setDate(d.getDate()+i);return d};
+function ageOf(k){if(!k?.dob)return 7;const b=new Date(k.dob+"T00:00"),n=new Date();let a=n.getFullYear()-b.getFullYear();if(n.getMonth()<b.getMonth()||(n.getMonth()==b.getMonth()&&n.getDate()<b.getDate()))a--;return Math.max(a,0)}
 const level=a=>a<4?"Pre-school":a==4?"Reception":a<=15?"Year "+(a-4):"Year 11+";
-const isBday=k=>k.dob&&k.dob.slice(5)==todayKey().slice(5);
-const fits=(r,k)=>!k||(ageOf(k)>=r[2]&&ageOf(k)<=r[3]);
+const isBday=(k,s=todayKey())=>k?.dob&&k.dob.slice(5)==s.slice(5);
+const fits=(w,k)=>!k||(ageOf(k)>=w.min&&ageOf(k)<=w.max);
+const nid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const kid=()=>data.kids.find(k=>k.id==data.active)||data.kids[0];
 
+// assignment: {id,kid,work|c,time,rep:'once'|'weekly'|'weekdays',date,skip:[]}
+function occurs(a,D){if(a.skip?.includes(D))return false;if(a.rep=="once")return a.date==D;if(D<a.date)return false;
+ return a.rep=="weekly"?dowOf(D)==dowOf(a.date):dowOf(D)<5}
+const itemsFor=(plan,kidId,D)=>plan.filter(a=>a.kid==kidId&&occurs(a,D)).sort((x,y)=>x.time.localeCompare(y.time));
+function workOf(a){if(a.work)return WI[a.work]||{t:"(removed work)",s:"",type:"paper",e:"❓",d:"",sheet:()=>[]};
+ const c=a.c||{};return{custom:1,t:c.title,s:c.sub,type:c.type,link:c.link,d:c.notes,e:c.type=="video"?"🎬":c.type=="digital"?"💻":"📝"}}
+const rkey=(k,d,i)=>k+"|"+d+"|"+i;
+const repLabel=a=>a.rep=="weekly"?"Every "+DAYL[dowOf(a.date)]:a.rep=="weekdays"?"Every weekday":"";
+
+// ================= NAV =================
+const PARENT_PAGES=["home","timetable","work","profile"];
 function show(p){
  document.querySelectorAll(".page").forEach(x=>x.classList.toggle("on",x.id==p));
  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.p==p));
- $("tabbar").style.display=p=="auth"?"none":"flex";$("app").classList.toggle("auth",p=="auth");scrollTo(0,0)}
+ const par=PARENT_PAGES.includes(p);$("tabbar").style.display=par?"flex":"none";$("app").classList.toggle("bare",!par);scrollTo(0,0);
+ if(par&&data){render();loadResults()}}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>show(b.dataset.p));
+const closeM=id=>$(id).classList.remove("on");
+function toast(t){const e=$("toast");e.textContent=t;e.style.opacity=1;clearTimeout(e._t);e._t=setTimeout(()=>e.style.opacity=0,2000)}
+function ask(title,btns){return new Promise(res=>{$("askH").textContent=title;
+ $("askB").innerHTML=btns.map((b,i)=>`<button class="big ${i==btns.length-1?"ghost":""}" data-i="${i}">${esc(b)}</button>`).join("");
+ $("askB").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeM("askModal");res(+b.dataset.i)});$("askModal").classList.add("on")})}
 
-// ---- auth
+// ================= PARENT AUTH =================
+async function goParent(){const {data:{session}}=await sb.auth.getSession();session?load(session.user):show("auth")}
 document.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{mode=b.dataset.m;
  document.querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("on",x==b));
  $("nameRow").style.display=mode=="up"?"block":"none";$("aBtn").textContent=mode=="up"?"Create account":"Log in";$("aErr").textContent=""});
 $("af").onsubmit=async e=>{e.preventDefault();
  const em=$("aEmail").value.trim().toLowerCase(),pw=$("aPass").value,nm=$("aName").value.trim();
+ $("aErr").style.color="";
  if(!/^\S+@\S+\.\S+$/.test(em))return $("aErr").textContent="Enter a valid email";
  if(pw.length<6)return $("aErr").textContent="Password must be at least 6 characters";
  if(mode=="up"&&!nm)return $("aErr").textContent="Enter your name";
@@ -243,95 +378,192 @@ $("af").onsubmit=async e=>{e.preventDefault();
  $("af").reset();await load(r.data.user);
  if(mode=="up"){toast("Welcome! Add your first learner 👋");openKid()}
 };
-$("logout").onclick=async()=>{await sb.auth.signOut();me=null;data=null;show("auth")};
+$("logout").onclick=async()=>{await sb.auth.signOut();me=null;data=null;show("start")};
+function save(){clearTimeout(saveT);saveT=setTimeout(async()=>{const {error}=await sb.from("profiles").upsert({id:uid,data,updated_at:new Date().toISOString()});if(error)toast("⚠️ Couldn't save: "+error.message)},400)}
+async function load(user){me=user.email;uid=user.id;
+ const {data:row,error}=await sb.from("profiles").select("data").eq("id",uid).maybeSingle();
+ if(error){show("auth");$("aErr").textContent="Couldn't load your data: "+error.message;return}
+ data=row?.data||{name:user.user_metadata?.name||me.split("@")[0],kids:[]};
+ data.kids.forEach(k=>{delete k.tt;delete k.ttAge;if(!k.dob){const d=new Date();d.setFullYear(d.getFullYear()-(k.age||7));k.dob=ymd(d)}});
+ if(!data.plan)data.plan=[];
+ show("home")}
+async function loadResults(){const {data:r,error}=await sb.from("results").select("kid,day,item,result");if(error)return;
+ RES={};r.forEach(x=>RES[rkey(x.kid,x.day,x.item)]=x.result);render()}
 
-// ---- learners
+// ================= LEARNERS =================
 $("kDob").max=todayKey();
 function openKid(){$("kName").value="";$("kDob").value="";$("kAgeT").textContent="";emo=EMO[0];drawEmo();$("kErr").textContent="";$("kidModal").classList.add("on")}
 $("kDob").oninput=()=>{const a=ageOf({dob:$("kDob").value});$("kAgeT").textContent=$("kDob").value?`Age ${a} · starts at ${level(a)} level`:""};
 function drawEmo(){$("kEmo").innerHTML=EMO.map(e=>`<span class="${e==emo?"on":""}" onclick="emo='${e}';drawEmo()">${e}</span>`).join("")}
-$("kCancel").onclick=()=>$("kidModal").classList.remove("on");
 $("kSave").onclick=()=>{const n=$("kName").value.trim(),dob=$("kDob").value;
  if(!n)return $("kErr").textContent="Enter a name";if(!dob)return $("kErr").textContent="Enter a birthday";
- const k={id:Date.now(),name:n,dob,emo};genTT(k);U().kids.push(k);U().active=k.id;save();
- $("kidModal").classList.remove("on");render();toast(n+" added — timetable ready 🎉")};
-function delKid(id){if(!confirm("Remove this learner?"))return;U().kids=U().kids.filter(k=>k.id!=id);save();render()}
+ const k={id:nid(),name:n,dob,emo};data.kids.push(k);data.active=k.id;save();
+ closeM("kidModal");render();toast(n+" added 🎉 Now add work in Timetable")};
+async function delKid(id){if(await ask("Remove this learner and their timetable?",["Remove","Cancel"]))return;
+ data.kids=data.kids.filter(k=>k.id!=id);data.plan=data.plan.filter(a=>a.kid!=id);save();
+ await sb.from("child_links").delete().eq("kid_id",String(id));render()}
+function pickKid(id){data.active=id;save();render()}
 
-// ---- timetable: k.tt[0..6] = [{id,time,sub,title,emo}]
-const TIMES=["09:00","10:00","11:15","13:30"];
-const nid=()=>Date.now()*100+Math.floor(Math.random()*100);
-function genTT(k){const pool=R.filter(r=>fits(r,k));k.tt=[[],[],[],[],[],[],[]];
- for(let d=0;d<5&&pool.length;d++){const used=new Set(),j=(d*3)%pool.length;
-  for(const r of [...pool.slice(j),...pool.slice(0,j)]){if(used.has(r[1]))continue;used.add(r[1]);
-   k.tt[d].push({id:nid(),time:TIMES[k.tt[d].length],sub:r[1],title:r[0],emo:r[4]});if(k.tt[d].length==4)break}}
- k.ttAge=ageOf(k)}
-const sorted=a=>[...a].sort((x,y)=>x.time.localeCompare(y.time));
-function lessonRow(l,dk,removable){const done=(U().done[dk]||[]).includes(l.id);
- return `<div class="ls ${done?"done":""}" onclick="tick('${dk}',${l.id})"><span class="tm">${l.time}</span><span class="ck">✓</span><span style="font-size:22px">${l.emo}</span><div style="min-width:0"><b>${l.sub}</b><div class="meta">${l.title}</div></div>${removable?`<span class="x" onclick="event.stopPropagation();rmLesson(${l.id})">✕</span>`:""}</div>`}
-function rmLesson(id){const k=kid();k.tt[selDay]=k.tt[selDay].filter(l=>l.id!=id);save();render();toast("Lesson removed")}
-function copyDay(){const k=kid();for(let d=0;d<5;d++)if(d!=selDay)k.tt[d]=k.tt[selDay].map(l=>({...l,id:nid()}));save();render();toast("Copied to Mon–Fri")}
-function fillRes(){const k=kid(),s=$("lSub").value;$("lRes").innerHTML=R.filter(r=>r[1]==s&&fits(r,k)).map(r=>`<option>${r[0]}</option>`).join("")||"<option value=''>No resources for this age — type your own below</option>"}
-function openLesson(){if(!kid())return toast("Add a learner first");$("lSub").innerHTML=subjects.slice(1).map(s=>`<option>${s}</option>`).join("")+"<option>PE</option><option>Music</option><option>Life skills</option>";
- fillRes();$("lCustom").value="";$("lRep").value="1";$("lesH").textContent="Add lesson · "+DAYS[selDay];$("lesModal").classList.add("on")}
-$("lSub").onchange=fillRes;
-$("lSave").onclick=()=>{const k=kid(),s=$("lSub").value,t=$("lCustom").value.trim()||$("lRes").value;if(!t)return toast("Pick or type a lesson");
- const r=R.find(r=>r[0]==t),days=$("lRep").value=="5"?[0,1,2,3,4]:[selDay];
- days.forEach(d=>k.tt[d].push({id:nid(),time:$("lTime").value||"09:00",sub:s,title:t,emo:r?r[4]:"📘"}));
- save();$("lesModal").classList.remove("on");render();toast("Lesson added ✅")};
-function regen(){const k=kid();genTT(k);save();render();toast(`Timetable updated for age ${ageOf(k)} 🚀`)}
+// ---- QR child login
+let qrKid=null;
+async function showQR(id,fresh){qrKid=id;const k=data.kids.find(x=>x.id==id);$("qrH").textContent=k.name+"'s login code";
+ let tok=null;
+ if(!fresh){const {data:r}=await sb.from("child_links").select("token").eq("kid_id",String(id)).limit(1);tok=r?.[0]?.token}
+ if(!tok){await sb.from("child_links").delete().eq("kid_id",String(id));
+  tok=[...crypto.getRandomValues(new Uint8Array(20))].map(b=>"abcdefghijkmnpqrstuvwxyz23456789"[b%32]).join("");
+  const {error}=await sb.from("child_links").insert({token:tok,kid_id:String(id),parent:uid});
+  if(error)return toast("⚠️ "+error.message)}
+ const url=location.origin+location.pathname+"?c="+tok;
+ $("qrBox").innerHTML="";new QRCode($("qrBox"),{text:url,width:220,height:220});
+ $("qrModal").classList.add("on")}
+$("qrNew").onclick=async()=>{if(await ask("Make a new code? The old one will stop working.",["Make new code","Cancel"]))return;showQR(qrKid,true)};
 
-function card(r,i){const u=U();return `<div class="card"><div class="th" style="background:${r[5]}">${r[4]}${r[6]?'<span class="free">FREE</span>':""}</div><div class="cb"><h3>${r[0]}</h3><div class="meta">${r[1]} · Ages ${r[2]}–${r[3]}</div></div><div class="acts"><button class="ib" onclick="fav(${i})">${u.saved.includes(i)?"❤️":"♡"}</button><button class="dl" onclick="dl(${i})">⬇</button></div></div>`}
-const kidChips=k=>U().kids.map(c=>`<div class="kid ${k&&c.id==k.id?"on":""}" onclick="pick(${c.id})"><span class="e">${c.emo}</span>${c.name}</div>`).join("")+`<div class="kid" onclick="openKid()"><span class="e">＋</span>Add</div>`;
+// ================= ASSIGN WORK =================
+function openAssign(workId,date){const k=kid();if(!k)return toast("Add a learner first");
+ const ok=W.filter(w=>fits(w,k));
+ $("asWork").innerHTML=`<option value="custom">✏️ My own work…</option>`+SUBJ.map(s=>{const l=ok.filter(w=>w.s==s);return l.length?`<optgroup label="${s}">${l.map(w=>`<option value="${w.id}">${TY[w.type].split(" ")[0]} ${esc(w.t)}</option>`).join("")}</optgroup>`:""}).join("");
+ if(workId&&!fits(WI[workId],k))$("asWork").insertAdjacentHTML("beforeend",`<option value="${workId}">${esc(WI[workId].t)} (other age)</option>`);
+ $("asWork").value=workId||(ok[0]?.id??"custom");
+ $("cS").innerHTML=SUBJ.map(s=>`<option>${s}</option>`).join("");
+ ["cT","cL","cN"].forEach(i=>$(i).value="");
+ $("asDate").value=date||ymd(dayDate(selDay));$("asTime").value="09:00";$("asErr").textContent="";$("asRep").innerHTML="";
+ $("asH").textContent="Add work for "+k.name;
+ syncAs();$("asModal").classList.add("on")}
+function syncAs(){$("asCustom").style.display=$("asWork").value=="custom"?"block":"none";
+ const d=$("asDate").value||todayKey(),v=$("asRep").value;
+ $("asRep").innerHTML=`<option value="once">Just this day</option><option value="weekly">Every ${DAYL[dowOf(d)]}</option><option value="weekdays">Every weekday (Mon–Fri)</option>`;
+ if(v)$("asRep").value=v}
+$("asWork").onchange=syncAs;$("asDate").onchange=syncAs;
+$("asSave").onclick=()=>{const k=kid(),w=$("asWork").value,d=$("asDate").value;
+ if(!d)return $("asErr").textContent="Pick a day";
+ const a={id:nid(),kid:k.id,time:$("asTime").value||"09:00",rep:$("asRep").value,date:d};
+ if(w=="custom"){const t=$("cT").value.trim();if(!t)return $("asErr").textContent="Give your work a title";
+  let l=$("cL").value.trim();if(l&&!/^https?:\/\//i.test(l))l="https://"+l;
+  a.c={title:t,sub:$("cS").value,type:$("cY").value,link:l,notes:$("cN").value.trim()}}
+ else a.work=w;
+ data.plan.push(a);save();closeM("asModal");
+ const sd=new Date(d+"T00:00");sd.setDate(sd.getDate()-dowOf(d));wk=Math.round((sd-weekStart(0))/6048e5);selDay=dowOf(d);
+ render();toast(a.rep=="once"?"Work added ✅":`Added — ${repLabel(a).toLowerCase()} ✅`)};
+async function rmItem(id,D){const a=data.plan.find(x=>x.id==id);if(!a)return;
+ if(a.rep=="once"){data.plan=data.plan.filter(x=>x!=a)}
+ else{const c=await ask(`Remove "${workOf(a).t}"?`,["Just this day",repLabel(a)+" (all)","Cancel"]);
+  if(c==2)return;if(c==0)(a.skip=a.skip||[]).push(D);else data.plan=data.plan.filter(x=>x!=a)}
+ save();render();toast("Removed")}
+async function toggleDone(k,D,id){const key=rkey(k,D,id);
+ if(RES[key]){delete RES[key];render();await sb.from("results").delete().match({kid:String(k),day:D,item:id})}
+ else{RES[key]={manual:true};render();toast("Marked done ⭐");await sb.from("results").upsert({parent:uid,kid:String(k),day:D,item:id,result:{manual:true}})}}
 
+// ================= RENDER (parent) =================
+const kidChips=k=>data.kids.map(c=>`<div class="kid ${k&&c.id==k.id?"on":""}" onclick="pickKid('${c.id}')"><span class="e">${c.emo}</span>${esc(c.name)}</div>`).join("")+`<div class="kid" onclick="openKid()"><span class="e">＋</span>Add</div>`;
+function resultTxt(r){return !r?"":r.score?`⭐ ${r.score}`:r.manual?"✓ marked by parent":r.paper?"✓ paper done":"✓ done"}
+function row(a,k,D,parent){const w=workOf(a),r=RES[rkey(k.id,D,a.id)];
+ return `<div class="ls ${r?"done":""}" onclick="${parent?`toggleDone('${k.id}','${D}','${a.id}')`:`childOpen('${a.id}','${D}')`}">
+ <span class="tm">${a.time}</span><span class="ck">✓</span><span style="font-size:22px">${w.e}</span>
+ <div style="min-width:0;flex:1"><b>${esc(w.s)}</b> <span class="type">${TY[w.type]||""}</span><div class="meta">${esc(w.t)}${a.rep!="once"?" · 🔁":""}</div>${r?`<div class="score">${resultTxt(r)}</div>`:""}</div>
+ ${parent?`<span class="x" onclick="event.stopPropagation();previewItem('${a.id}')">👁</span><span class="x" style="margin:0" onclick="event.stopPropagation();rmItem('${a.id}','${D}')">✕</span>`:`<span class="x">›</span>`}</div>`}
+function workCard(w){return `<div class="card"><div class="th">${w.e}</div><div class="cb"><h3>${esc(w.t)}</h3><div class="meta">${w.s} · Ages ${w.min}–${w.max}</div><span class="type">${TY[w.type]}</span></div><div class="acts"><button class="sq l" onclick="openWork(WI['${w.id}'],{preview:1})">👁</button><button class="sq" onclick="openAssign('${w.id}',todayKey())">＋</button></div></div>`}
 function render(){
- const u=U(),k=kid();
- $("hi").textContent="Hi, "+u.name+" 👋";
+ if(!data)return;const k=kid();
+ $("hi").textContent="Hi, "+data.name+" 👋";
  $("kids").innerHTML=$("ttKids").innerHTML=kidChips(k);
  if(k){
-  const a=ageOf(k),dk=k.id+"_"+todayKey(),ls=sorted(k.tt[(new Date().getDay()+6)%7]),done=(u.done[dk]||[]).filter(id=>ls.some(l=>l.id==id));
-  let pre="";
-  if(isBday(k))pre+=`<div class="bday">🎂 Happy birthday ${k.name}! You're ${a} today!</div><div style="height:10px"></div>`;
-  if(k.ttAge!=a)pre+=`<div class="bday" style="background:linear-gradient(90deg,#5b3fd6,#14b8a6)">🚀 ${k.name} is now ${a} (${level(a)})!<button class="big" style="background:#fff;color:var(--pri);margin-top:10px" onclick="regen()">Level up timetable</button></div><div style="height:10px"></div>`;
-  $("todayH").innerHTML=pre+k.name+"'s lessons today <span class='meta'>· "+level(a)+"</span>";
-  $("today").innerHTML=ls.length?ls.map(l=>lessonRow(l,dk)).join(""):'<div class="empty">No lessons today — enjoy the break! 🌈</div>';
-  const pc=ls.length?Math.round(done.length/ls.length*100):0;$("prog").style.width=pc+"%";
-  $("progT").textContent=!ls.length?"":pc==100?"All done today — amazing! 🌟":`${done.length} of ${ls.length} lessons complete`;
-  $("recH").textContent=`Recommended for age ${a}`;
+  const a=ageOf(k),T=todayKey(),its=itemsFor(data.plan,k.id,T),dn=its.filter(x=>RES[rkey(k.id,T,x.id)]).length;
+  $("bday").innerHTML=isBday(k)?`<div class="bday">🎂 Happy birthday ${esc(k.name)}! ${a} today!</div>`:"";
+  $("todayH").innerHTML=`${esc(k.name)}'s work today <span class="meta">· ${level(a)}</span>`;
+  $("today").innerHTML=its.length?its.map(x=>row(x,k,T,1)).join(""):'<div class="empty">Nothing set for today.<br>Go to 📅 Timetable to add work.</div>';
+  const pc=its.length?Math.round(dn/its.length*100):0;$("prog").style.width=pc+"%";
+  $("progT").textContent=!its.length?"":pc==100?"All done today — amazing! 🌟":`${dn} of ${its.length} complete`;
+  $("recH").textContent=`Suggested for age ${a}`;
+  const seed=[...T].reduce((s,c)=>s+c.charCodeAt(0),0),ok=W.filter(w=>fits(w,k));
+  $("rec").innerHTML=ok.length?[...new Set(N(Math.min(4,ok.length),(_,i)=>ok[(seed+i*5)%ok.length]))].map(workCard).join(""):'<div class="empty">No suggestions for this age yet</div>';
   $("ttH").textContent=k.name+"'s timetable";
-  const ws=weekStart(wk),we=new Date(ws);we.setDate(we.getDate()+6);
-  const f=d=>d.toLocaleDateString(undefined,{day:"numeric",month:"short"});
+  const ws=weekStart(wk),we=new Date(ws);we.setDate(we.getDate()+6);const f=d=>d.toLocaleDateString(undefined,{day:"numeric",month:"short"});
   $("wkL").textContent=wk==0?"This week":f(ws)+" – "+f(we);
-  $("days").innerHTML=DAYS.map((n,i)=>{const d=dayDate(i),dd=u.done[k.id+"_"+ymd(d)]||[];
-   return `<div class="day ${i==selDay?"on":""} ${ymd(d)==todayKey()?"now":""}" onclick="selDay=${i};render()">${n}<b>${d.getDate()}</b><div class="dots">${k.tt[i].map(l=>dd.includes(l.id)?"●":"○").join("")}</div></div>`}).join("");
-  const sd=dayDate(selDay),sk=k.id+"_"+ymd(sd);
-  $("dayH").textContent=sd.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})+(k.dob.slice(5)==ymd(sd).slice(5)?" 🎂":"");
-  $("dayList").innerHTML=k.tt[selDay].length?sorted(k.tt[selDay]).map(l=>lessonRow(l,sk,1)).join(""):'<div class="empty">No lessons — tap “Add lesson”</div>';
+  $("days").innerHTML=DAYS.map((n,i)=>{const D=ymd(dayDate(i)),L=itemsFor(data.plan,k.id,D);
+   return `<div class="day ${i==selDay?"on":""} ${D==T?"now":""}" onclick="selDay=${i};render()">${n}<b>${dayDate(i).getDate()}</b><div class="dots">${L.slice(0,5).map(l=>RES[rkey(k.id,D,l.id)]?"●":"○").join("")}</div></div>`}).join("");
+  const SD=ymd(dayDate(selDay)),L=itemsFor(data.plan,k.id,SD);
+  $("dayH").textContent=dayDate(selDay).toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})+(isBday(k,SD)?" 🎂":"");
+  $("dayList").innerHTML=L.length?L.map(x=>row(x,k,SD,1)).join(""):'<div class="empty">Nothing planned — tap “Add work”</div>';
+  $("workSub").textContent=`Showing work for ${k.name} (age ${a})`;
  }else{
-  $("todayH").textContent="Today's lessons";$("today").innerHTML='<div class="empty">Add a learner to get a timetable</div>';
-  $("prog").style.width=0;$("progT").textContent="";$("recH").textContent="All resources";
+  $("bday").innerHTML="";$("todayH").textContent="Today";$("today").innerHTML='<div class="empty">Add a learner to get started</div>';
+  $("prog").style.width=0;$("progT").textContent="";$("rec").innerHTML="";
   $("ttH").textContent="Timetable";$("wkL").textContent="";$("days").innerHTML="";$("dayH").textContent="";$("dayList").innerHTML='<div class="empty">Add a learner first</div>';
+  $("workSub").textContent="Ready-made activities to assign";
  }
  const q=$("q").value.toLowerCase();
- const l=R.map((r,i)=>[r,i]).filter(([r])=>fits(r,k)&&(sub=="All"||r[1]==sub)&&r[0].toLowerCase().includes(q));
- $("chips").innerHTML=subjects.map(s=>`<div class="chip ${s==sub?"on":""}" onclick="sub='${s}';render()">${s}</div>`).join("");
- $("grid").innerHTML=l.length?l.map(([r,i])=>card(r,i)).join(""):'<div class="empty">No resources found 🔍</div>';
- const set=lib=="saved"?u.saved:u.dls;
- $("lib").innerHTML=set.length?set.map(i=>card(R[i],i)).join(""):`<div class="empty">${lib=="saved"?"Tap ♡ on a resource to save it":"Nothing downloaded yet"}</div>`;
- $("pName").textContent=u.name;$("pEmail").textContent=me;
- $("kidList").innerHTML=u.kids.map(c=>`<div class="mi"><span>${c.emo} ${c.name} <small>· age ${ageOf(c)} · ${level(ageOf(c))} · 🎂 ${new Date(c.dob+"T00:00").toLocaleDateString(undefined,{day:"numeric",month:"short"})}</small></span><span onclick="delKid(${c.id})" style="color:var(--mut)">✕</span></div>`).join("")+`<div class="mi" onclick="openKid()" style="color:var(--pri)">＋ Add learner<span>›</span></div>`;
+ $("chips").innerHTML=["All",...SUBJ].map(s=>`<div class="chip ${s==sub?"on":""}" onclick="sub='${s}';render()">${s}</div>`).join("");
+ $("tchips").innerHTML=["All","digital","paper","video"].map(s=>`<div class="chip ${s==tsub?"on":""}" onclick="tsub='${s}';render()">${s=="All"?"All types":TY[s]}</div>`).join("");
+ const l=W.filter(w=>fits(w,k)&&(sub=="All"||w.s==sub)&&(tsub=="All"||w.type==tsub)&&(w.t+" "+w.s).toLowerCase().includes(q));
+ $("grid").innerHTML=l.length?l.map(workCard).join(""):'<div class="empty">No work found for this age 🔍</div>';
+ $("pName").textContent=data.name;$("pEmail").textContent=me;
+ $("kidList").innerHTML=data.kids.map(c=>`<div class="mi"><span>${c.emo} ${esc(c.name)} <small>· age ${ageOf(c)} · ${level(ageOf(c))} · 🎂 ${new Date(c.dob+"T00:00").toLocaleDateString(undefined,{day:"numeric",month:"short"})}</small></span><span style="display:flex;gap:4px;flex:0 0 auto"><button class="sq l" style="font-size:13px;padding:0 8px" onclick="showQR('${c.id}')">📱 QR</button><button class="sq l" onclick="delKid('${c.id}')">✕</button></span></div>`).join("")+`<div class="mi" onclick="openKid()" style="color:var(--pri)">＋ Add learner<span>›</span></div>`;
 }
-function pick(id){U().active=id;save();render()}
-function tick(dk,i){const d=U().done[dk]=U().done[dk]||[];const j=d.indexOf(i);j<0?d.push(i):d.splice(j,1);save();render();if(j<0)toast("Nice work! ⭐")}
-function fav(i){const s=U().saved,j=s.indexOf(i);j<0?s.push(i):s.splice(j,1);save();render()}
-function dl(i){if(!U().dls.includes(i))U().dls.push(i);save();toast("Downloading “"+R[i][0]+"”");render()}
-function toast(t){const e=$("toast");e.textContent=t;e.style.opacity=1;clearTimeout(e._t);e._t=setTimeout(()=>e.style.opacity=0,1800)}
-
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>show(b.dataset.p));
-document.querySelectorAll("[data-l]").forEach(c=>c.onclick=()=>{document.querySelectorAll("[data-l]").forEach(x=>x.classList.remove("on"));c.classList.add("on");lib=c.dataset.l;render()});
 $("q").addEventListener("input",render);
-function start(){U().kids.forEach(k=>{if(!k.dob){const d=new Date();d.setFullYear(d.getFullYear()-(k.age||7));k.dob=ymd(d)}if(!k.tt)genTT(k)});save();render();show("home")}
-show("auth");
-sb.auth.getSession().then(({data:{session}})=>{if(session)load(session.user)});
+function previewItem(id){openWork(workOf(data.plan.find(a=>a.id==id)),{preview:1})}
+
+// ================= CHILD MODE =================
+function goChild(){const t=LS.get("glimmr_child");t?loadChild(t):startScan()}
+async function startScan(){show("scan");$("scanErr").textContent="";
+ try{scanner=new Html5Qrcode("reader");await scanner.start({facingMode:"environment"},{fps:10,qrbox:220},txt=>{
+  const m=txt.match(/[?&]c=([a-z0-9]+)/i);if(!m)return $("scanErr").textContent="That isn't a Glimmr code";stopScan();loadChild(m[1])})}
+ catch(e){$("scanErr").textContent="Couldn't open the camera. Scan the code with your camera app instead."}}
+function stopScan(){if(scanner){scanner.stop().catch(()=>{});scanner=null}}
+async function loadChild(t){
+ const {data:r,error}=await sb.rpc("child_get",{t});
+ if(error||!r||!r.kid){LS.set("glimmr_child",null);toast(error?"⚠️ "+error.message:"That code doesn't work any more");show("start");return}
+ childT=t;LS.set("glimmr_child",t);CH=r;RES={};(r.results||[]).forEach(x=>RES[rkey(r.kid.id,x.day,x.item)]=x.result);
+ cDay=(new Date().getDay()+6)%7;show("child");renderChild()}
+function renderChild(){const k=CH.kid,T=todayKey(),a=ageOf(k);
+ $("cHi").textContent=`Hi ${k.name} ${k.emo}`;$("cSub").textContent=`${level(a)} · Let's learn!`;
+ $("cBday").innerHTML=isBday(k)?`<div class="bday">🎂 Happy birthday ${esc(k.name)}! You're ${a}!</div>`:"";
+ $("cDays").innerHTML=DAYS.map((n,i)=>{const D=ymd(dayDate(i,0)),L=itemsFor(CH.plan,k.id,D);
+  return `<div class="day ${i==cDay?"on":""} ${D==T?"now":""}" onclick="cDay=${i};renderChild()">${n}<b>${dayDate(i,0).getDate()}</b><div class="dots">${L.slice(0,5).map(l=>RES[rkey(k.id,D,l.id)]?"●":"○").join("")}</div></div>`}).join("");
+ const D=ymd(dayDate(cDay,0)),L=itemsFor(CH.plan,k.id,D),dn=L.filter(x=>RES[rkey(k.id,D,x.id)]).length;
+ $("cDayH").textContent=D==T?"Today's work":DAYL[cDay]+"'s work";
+ $("cList").innerHTML=L.length?L.map(x=>row(x,k,D,0)).join(""):'<div class="empty">No work set — free time! 🌈</div>';
+ const pc=L.length?Math.round(dn/L.length*100):0;$("cProg").style.width=pc+"%";
+ $("cProgT").textContent=!L.length?"":pc==100?"All done — superstar! 🌟":`${dn} of ${L.length} done`}
+function childOpen(id,D){const a=CH.plan.find(x=>x.id==id);openWork(workOf(a),{kid:CH.kid.id,day:D,aid:id})}
+
+// ================= WORK PLAYER =================
+let P=null;
+function openWork(w,ctx){P={w,ctx,qs:w.custom?[]:qsOf(w),i:0,score:0,stage:w.custom?"custom":w.type=="digital"?"quiz":w.type};
+ $("player").classList.add("on");drawP()}
+function closeP(){$("player").classList.remove("on");P=null}
+function sheetHTML(w){const lines=w.custom?(w.d||"").split("\n").filter(Boolean):w.sheet();
+ return `<h2>${w.e} ${esc(w.t)}</h2><div class="meta" style="margin-bottom:10px">Name: ______________ &nbsp; Date: ____________</div>${w.custom?"":`<p><b>${esc(w.d)}</b></p>`}<ol>${lines.map(l=>l==BOX?'<div class="dbox"></div>':`<li>${esc(l)}</li>`).join("")}</ol>`}
+function drawP(){const {w}=P;let h=`<div class="ph"><button class="ib" onclick="closeP()">✕</button><span>${w.e} ${esc(w.t)}</span><span class="type">${TY[w.type]||""}</span></div>`;
+ if(P.ctx.preview)h+=`<div class="note" style="margin:0 0 10px">👁 Preview — nothing will be saved</div>`;
+ if(P.stage=="custom"){
+  h+=`<div id="sheetDoc">${sheetHTML(w)}</div>`;
+  if(w.link)h+=`<a class="big" href="${esc(w.link)}" target="_blank" rel="noopener">${w.type=="video"?"▶ Watch the video":"🔗 Open the activity"}</a>`;
+  if(w.type=="paper")h+=`<button class="big ghost" onclick="print()">🖨 Print</button>`;
+  h+=`<button class="big ${w.link?"ghost":""}" onclick="finish({done:true})">I've finished ✅</button>`}
+ else if(P.stage=="video"){
+  h+=`<div class="celebrate" style="padding:20px 0"><div class="e">${w.e}</div><p>${esc(w.d)}</p></div><a class="big" href="${yt(w.yt)}" target="_blank" rel="noopener">▶ Watch the video</a>`+
+   (P.qs.length?`<button class="big ghost" onclick="P.stage='quiz';drawP()">I've watched it — answer questions</button>`:`<button class="big ghost" onclick="finish({watched:true})">I've watched it ✅</button>`)}
+ else if(P.stage=="paper"){
+  h+=`<div id="sheetDoc">${sheetHTML(w)}</div><button class="big" onclick="print()">🖨 Print worksheet</button><button class="big ghost" onclick="finish({paper:true})">I've finished it ✅</button>`}
+ else if(P.i<P.qs.length){const q=P.qs[P.i];
+  h+=`<div class="meta">Question ${P.i+1} of ${P.qs.length} · ⭐ ${P.score}</div><div class="pbar"><div style="width:${P.i/P.qs.length*100}%"></div></div><div class="qq">${esc(q.q)}</div>`+
+   q.o.map((o,j)=>`<button class="opt" onclick="answer(${j})">${esc(o)}</button>`).join("")}
+ else{const n=P.qs.length,s=P.score,st=s==n?"🏆":s>=n*.7?"🌟":s>=n*.4?"👍":"💪";
+  h+=`<div class="celebrate"><div class="e">${st}</div><h2>You got ${s} out of ${n}!</h2><p>${s==n?"Perfect score!":s>=n*.7?"Great work!":"Good try — practice makes progress!"}</p></div>
+   <button class="big" onclick="finish({score:'${s}/${n}'})">Finish ✅</button><button class="big ghost" onclick="openWork(P.w,P.ctx)">Try again</button>`}
+ $("pw").innerHTML=h;$("player").scrollTop=0}
+function answer(j){const q=P.qs[P.i],b=$("pw").querySelectorAll(".opt");b.forEach(x=>x.disabled=true);
+ b[q.a].classList.add("ok");if(j==q.a)P.score++;else b[j].classList.add("bad");
+ setTimeout(()=>{P.i++;drawP()},j==q.a?700:1400)}
+async function finish(res){const c=P.ctx;
+ if(c.preview){closeP();return toast("Preview finished")}
+ res.at=new Date().toISOString();RES[rkey(c.kid,c.day,c.aid)]=res;closeP();
+ if(childT){renderChild();const {error}=await sb.rpc("child_done",{t:childT,d:c.day,i:c.aid,res});toast(error?"⚠️ Not saved: "+error.message:"Brilliant! Work saved 🌟")}
+ else{render();await sb.from("results").upsert({parent:uid,kid:String(c.kid),day:c.day,item:c.aid,result:res});toast("Saved ✅")}}
+
+// ================= BOOT =================
+const cParam=new URLSearchParams(location.search).get("c");
+if(cParam){history.replaceState(null,"",location.pathname);loadChild(cParam)}else show("start");
 </script>
 </body>
 </html>
