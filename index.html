@@ -172,7 +172,8 @@ textarea.in{min-height:80px;resize:vertical}
   </div>
   <div class="sec"><div class="days" id="days"></div></div>
   <div class="sec"><h2 id="dayH"></h2><div class="today" id="dayList"></div>
-    <button class="big" onclick="openAssign()">＋ Add work</button>
+    <button class="big" onclick="openAssign()">＋ Add real-life activity</button>
+    <button class="big ghost" onclick="show('work')">📚 Assign ready-made work</button>
   </div>
 </div>
 
@@ -213,11 +214,12 @@ textarea.in{min-height:80px;resize:vertical}
 <!-- assign work -->
 <div class="modal" id="asModal"><div class="sheet">
   <h2 style="margin:0" id="asH">Add work</h2>
-  <label>Work</label><select class="in" id="asWork"></select>
-  <div id="asCustom" style="display:none">
-    <label>Title</label><input class="in" id="cT" placeholder="e.g. Read chapter 3">
+  <div id="asPicked" class="card" style="margin-top:12px"></div>
+  <div id="asCustom">
+    <p class="meta" style="margin:6px 0 0">Real-life, outdoor or your own activity. For ready-made work, use the 📚 Work tab.</p>
+    <label>Title</label><input class="in" id="cT" placeholder="e.g. Nature walk, bake bread, library trip">
     <label>Subject</label><select class="in" id="cS"></select>
-    <label>Type</label><select class="in" id="cY"><option value="paper">📝 Paper / offline</option><option value="video">🎬 Video</option><option value="digital">💻 Online link</option></select>
+    <label>Type</label><select class="in" id="cY"><option value="outdoor">🌳 Outdoor</option><option value="life">🏠 Real life / practical</option><option value="trip">🚌 Trip / visit</option><option value="paper">📝 Paper / book</option><option value="video">🎬 Video</option><option value="digital">💻 Online link</option></select>
     <label>Link (optional)</label><input class="in" id="cL" placeholder="https://…">
     <label>Instructions</label><textarea class="in" id="cN" placeholder="What should they do? One step per line."></textarea>
   </div>
@@ -259,7 +261,7 @@ const N=(n,f)=>Array.from({length:n},f);
 function mc(q,c,w){const o=shuf([c,...w]);return{q,o,a:o.indexOf(c)}}
 function num(q,c,neg){const w=new Set();while(w.size<3){const d=c+rnd(-5,5);if(d!=c&&(neg||d>0))w.add(d)}return mc(q,String(c),[...w].map(String))}
 const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
-const TY={digital:"💻 Digital",paper:"📝 Paper",video:"🎬 Video"};
+const TY={digital:"💻 Digital",paper:"📝 Paper",video:"🎬 Video",outdoor:"🌳 Outdoor",life:"🏠 Real life",trip:"🚌 Trip"};
 const SUBJ=["English","Maths","Science","History","Geography","Art","Music","PE"];
 const BOX="[BOX]";
 const W=[
@@ -341,7 +343,7 @@ function occurs(a,D){if(a.skip?.includes(D))return false;if(a.rep=="once")return
  return a.rep=="weekly"?dowOf(D)==dowOf(a.date):dowOf(D)<5}
 const itemsFor=(plan,kidId,D)=>plan.filter(a=>a.kid==kidId&&occurs(a,D)).sort((x,y)=>x.time.localeCompare(y.time));
 function workOf(a){if(a.work)return WI[a.work]||{t:"(removed work)",s:"",type:"paper",e:"❓",d:"",sheet:()=>[]};
- const c=a.c||{};return{custom:1,t:c.title,s:c.sub,type:c.type,link:c.link,d:c.notes,e:c.type=="video"?"🎬":c.type=="digital"?"💻":"📝"}}
+ const c=a.c||{};return{custom:1,t:c.title,s:c.sub,type:c.type,link:c.link,d:c.notes,e:TY[c.type]?.split(" ")[0]||"📝"}}
 const rkey=(k,d,i)=>k+"|"+d+"|"+i;
 const repLabel=a=>a.rep=="weekly"?"Every "+DAYL[dowOf(a.date)]:a.rep=="weekdays"?"Every weekday":"";
 
@@ -419,25 +421,24 @@ async function showQR(id,fresh){qrKid=id;const k=data.kids.find(x=>x.id==id);$("
 $("qrNew").onclick=async()=>{if(await ask("Make a new code? The old one will stop working.",["Make new code","Cancel"]))return;showQR(qrKid,true)};
 
 // ================= ASSIGN WORK =================
+let asWorkId=null;
 function openAssign(workId,date){const k=kid();if(!k)return toast("Add a learner first");
- const ok=W.filter(w=>fits(w,k));
- $("asWork").innerHTML=`<option value="custom">✏️ My own work…</option>`+SUBJ.map(s=>{const l=ok.filter(w=>w.s==s);return l.length?`<optgroup label="${s}">${l.map(w=>`<option value="${w.id}">${TY[w.type].split(" ")[0]} ${esc(w.t)}</option>`).join("")}</optgroup>`:""}).join("");
- if(workId&&!fits(WI[workId],k))$("asWork").insertAdjacentHTML("beforeend",`<option value="${workId}">${esc(WI[workId].t)} (other age)</option>`);
- $("asWork").value=workId||(ok[0]?.id??"custom");
- $("cS").innerHTML=SUBJ.map(s=>`<option>${s}</option>`).join("");
+ asWorkId=workId||null;
+ $("asPicked").style.display=workId?"flex":"none";$("asCustom").style.display=workId?"none":"block";
+ if(workId){const w=WI[workId];$("asPicked").innerHTML=`<div class="th">${w.e}</div><div class="cb"><h3>${esc(w.t)}</h3><div class="meta">${w.s} · Ages ${w.min}–${w.max}</div><span class="type">${TY[w.type]}</span></div>`}
+ $("cS").innerHTML=SUBJ.map(s=>`<option>${s}</option>`).join("")+"<option>Life skills</option><option>Other</option>";
  ["cT","cL","cN"].forEach(i=>$(i).value="");
  $("asDate").value=date||ymd(dayDate(selDay));$("asTime").value="09:00";$("asErr").textContent="";$("asRep").innerHTML="";
- $("asH").textContent="Add work for "+k.name;
+ $("asH").textContent=(workId?"Assign to ":"Add activity for ")+k.name;
  syncAs();$("asModal").classList.add("on")}
-function syncAs(){$("asCustom").style.display=$("asWork").value=="custom"?"block":"none";
- const d=$("asDate").value||todayKey(),v=$("asRep").value;
+function syncAs(){ const d=$("asDate").value||todayKey(),v=$("asRep").value;
  $("asRep").innerHTML=`<option value="once">Just this day</option><option value="weekly">Every ${DAYL[dowOf(d)]}</option><option value="weekdays">Every weekday (Mon–Fri)</option>`;
  if(v)$("asRep").value=v}
-$("asWork").onchange=syncAs;$("asDate").onchange=syncAs;
-$("asSave").onclick=()=>{const k=kid(),w=$("asWork").value,d=$("asDate").value;
+$("asDate").onchange=syncAs;
+$("asSave").onclick=()=>{const k=kid(),w=asWorkId||"custom",d=$("asDate").value;
  if(!d)return $("asErr").textContent="Pick a day";
  const a={id:nid(),kid:k.id,time:$("asTime").value||"09:00",rep:$("asRep").value,date:d};
- if(w=="custom"){const t=$("cT").value.trim();if(!t)return $("asErr").textContent="Give your work a title";
+ if(w=="custom"){const t=$("cT").value.trim();if(!t)return $("asErr").textContent="Give your activity a title";
   let l=$("cL").value.trim();if(l&&!/^https?:\/\//i.test(l))l="https://"+l;
   a.c={title:t,sub:$("cS").value,type:$("cY").value,link:l,notes:$("cN").value.trim()}}
  else a.work=w;
@@ -483,7 +484,7 @@ function render(){
    return `<div class="day ${i==selDay?"on":""} ${D==T?"now":""}" onclick="selDay=${i};render()">${n}<b>${dayDate(i).getDate()}</b><div class="dots">${L.slice(0,5).map(l=>RES[rkey(k.id,D,l.id)]?"●":"○").join("")}</div></div>`}).join("");
   const SD=ymd(dayDate(selDay)),L=itemsFor(data.plan,k.id,SD);
   $("dayH").textContent=dayDate(selDay).toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})+(isBday(k,SD)?" 🎂":"");
-  $("dayList").innerHTML=L.length?L.map(x=>row(x,k,SD,1)).join(""):'<div class="empty">Nothing planned — tap “Add work”</div>';
+  $("dayList").innerHTML=L.length?L.map(x=>row(x,k,SD,1)).join(""):'<div class="empty">Nothing planned yet</div>';
   $("workSub").textContent=`Showing work for ${k.name} (age ${a})`;
  }else{
   $("bday").innerHTML="";$("todayH").textContent="Today";$("today").innerHTML='<div class="empty">Add a learner to get started</div>';
@@ -538,7 +539,7 @@ function drawP(){const {w}=P;let h=`<div class="ph"><button class="ib" onclick="
  if(P.stage=="custom"){
   h+=`<div id="sheetDoc">${sheetHTML(w)}</div>`;
   if(w.link)h+=`<a class="big" href="${esc(w.link)}" target="_blank" rel="noopener">${w.type=="video"?"▶ Watch the video":"🔗 Open the activity"}</a>`;
-  if(w.type=="paper")h+=`<button class="big ghost" onclick="print()">🖨 Print</button>`;
+  
   h+=`<button class="big ${w.link?"ghost":""}" onclick="finish({done:true})">I've finished ✅</button>`}
  else if(P.stage=="video"){
   h+=`<div class="celebrate" style="padding:20px 0"><div class="e">${w.e}</div><p>${esc(w.d)}</p></div><a class="big" href="${yt(w.yt)}" target="_blank" rel="noopener">▶ Watch the video</a>`+
