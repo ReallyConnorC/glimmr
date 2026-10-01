@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Glimmr Homeschool</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--pri:#5b3fd6;--pri2:#7c5cff;--acc:#ffb703;--ink:#1f1b3a;--mut:#6b6788;--bg:#f7f5ff;--line:#e6e2f7;--ok:#22c55e}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:Nunito,sans-serif;background:#ddd8f5;color:var(--ink)}
+.app{max-width:440px;margin:auto;min-height:100vh;background:var(--bg);position:relative;padding-bottom:84px}
+.app.auth{padding-bottom:0}
+.top{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;padding:18px 16px 22px;border-radius:0 0 24px 24px}
+.logo{font-weight:900;font-size:24px}.logo span{color:var(--acc)}
+.top p{margin:4px 0 14px;opacity:.9}
+.search{display:flex;background:#fff;border-radius:14px;padding:4px 12px;align-items:center;gap:8px}
+.search input{flex:1;border:0;outline:0;padding:10px 0;font:16px Nunito}
+.sec{padding:18px 16px 0}.sec h2{font-size:19px;margin:0 0 12px}
+.hs{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.hs::-webkit-scrollbar{display:none}
+.kid{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;border-radius:999px;background:#ffffff26;color:#fff;font-weight:700;cursor:pointer;border:2px solid transparent}
+.kid.on{background:#fff;color:var(--pri)}.kid .e{width:30px;height:30px;border-radius:50%;background:var(--acc);display:grid;place-items:center}
+.chip{flex:0 0 auto;padding:7px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);font-weight:700;font-size:14px;cursor:pointer}
+.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.list{display:flex;flex-direction:column;gap:12px}
+.card{display:flex;gap:12px;background:#fff;border-radius:16px;padding:10px;border:1px solid var(--line);align-items:center}
+.th{width:64px;height:64px;border-radius:12px;display:grid;place-items:center;font-size:30px;flex:0 0 auto;position:relative}
+.free{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);background:var(--acc);border-radius:5px;padding:0 5px;font-size:10px;font-weight:900}
+.cb{flex:1;min-width:0}.cb h3{margin:0 0 3px;font-size:15px}.meta{color:var(--mut);font-size:12px}
+.acts{display:flex;flex-direction:column;align-items:center;gap:4px}
+.ib{background:none;border:0;font-size:22px;cursor:pointer;padding:4px}
+.dl{background:var(--pri);color:#fff;border:0;border-radius:10px;width:38px;height:38px;font-size:17px;cursor:pointer}
+.today{background:#fff;border-radius:18px;border:1px solid var(--line);padding:6px 14px}
+.ls{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}.ls:last-child{border:0}
+.ck{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;color:#fff;font-weight:900;flex:0 0 auto}
+.ls.done .ck{background:var(--ok);border-color:var(--ok)}.ls.done b{text-decoration:line-through;color:var(--mut)}
+.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:4px 0 2px}.bar div{height:100%;background:var(--ok);transition:.4s}
+.empty{color:var(--mut);text-align:center;padding:30px 10px}
+.prof{text-align:center;padding:30px 16px 10px}
+.av{width:84px;height:84px;border-radius:50%;background:var(--acc);display:grid;place-items:center;font-size:40px;margin:auto}
+.prof h2{margin:10px 0 2px}.prof p{color:var(--mut);margin:0}
+.box{margin:0 16px 16px;background:#fff;border-radius:16px;border:1px solid var(--line);overflow:hidden}
+.mi{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-weight:700;cursor:pointer}.mi:last-child{border:0}
+.mi small{color:var(--mut);font-weight:400}
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;background:#fff;border-top:1px solid var(--line);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:9;box-shadow:0 -4px 20px #5b3fd614}
+.tab{flex:1;background:none;border:0;font:700 12px Nunito;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.tab i{font-style:normal;font-size:22px;filter:grayscale(1);opacity:.6}
+.tab.on{color:var(--pri)}.tab.on i{filter:none;opacity:1}
+.page{display:none}.page.on{display:block}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;opacity:0;transition:.3s;font-size:14px;white-space:nowrap;pointer-events:none;z-index:20}
+/* auth */
+.auth-wrap{min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(160deg,var(--pri),var(--pri2))}
+.hero{color:#fff;text-align:center;padding:50px 24px 30px}.hero .logo{font-size:38px}.hero p{opacity:.9;margin:6px 0 0}
+.sheet{background:#fff;flex:1;border-radius:28px 28px 0 0;padding:26px 22px}
+.seg{display:flex;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:18px}
+.seg button{flex:1;border:0;background:none;padding:10px;border-radius:9px;font:700 15px Nunito;color:var(--mut);cursor:pointer}
+.seg button.on{background:#fff;color:var(--pri);box-shadow:0 2px 6px #0001}
+label{display:block;font-weight:700;font-size:13px;margin:12px 0 5px}
+.in{width:100%;padding:13px 14px;border:2px solid var(--line);border-radius:12px;font:16px Nunito;outline:0;background:#fff}.in:focus{border-color:var(--pri)}
+.big{width:100%;margin-top:20px;padding:14px;border:0;border-radius:14px;background:var(--pri);color:#fff;font:900 16px Nunito;cursor:pointer}
+.ghost{background:var(--bg);color:var(--pri)}
+.err{color:#e11d48;font-size:13px;margin-top:10px;min-height:18px}
+.note{font-size:12px;color:var(--mut);text-align:center;margin-top:14px}
+/* modal */
+.modal{position:fixed;inset:0;background:#1f1b3a88;display:none;align-items:flex-end;justify-content:center;z-index:30}
+.modal.on{display:flex}.modal .sheet{flex:none;width:100%;max-width:440px}
+.wk{display:flex;align-items:center;justify-content:space-between;margin:8px 0 12px;font-weight:700}.wk button{background:#ffffff26;border:0;color:#fff;width:34px;height:34px;border-radius:10px;font-size:20px;cursor:pointer}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 0;text-align:center;cursor:pointer;font-size:12px;font-weight:700;color:var(--mut)}
+.day b{display:block;font-size:17px;color:var(--ink)}.day.on{background:var(--pri);border-color:var(--pri);color:#fff}.day.on b{color:#fff}
+.day.now{border:2px solid var(--acc)}.dots{font-size:9px;letter-spacing:1px;height:10px;color:var(--ok)}
+.tm{font-size:12px;color:var(--mut);width:40px;flex:0 0 auto}.x{margin-left:auto;color:var(--mut);padding:6px;font-size:16px}
+.bday{background:linear-gradient(90deg,#ff7a59,#ffb703);color:#fff;border-radius:16px;padding:14px;font-weight:900;text-align:center}
+.tab{font-size:11px}
+.emo{display:flex;gap:8px;flex-wrap:wrap}.emo span{font-size:26px;padding:6px;border-radius:10px;cursor:pointer;border:2px solid transparent}.emo span.on{border-color:var(--pri);background:var(--bg)}
+</style>
+</head>
+<body><div class="app" id="app">
+
+<!-- AUTH -->
+<div class="page" id="auth"><div class="auth-wrap">
+  <div class="hero"><div class="logo">Glimm<span>r</span>✨</div><p>Homeschooling made simple & joyful</p></div>
+  <div class="sheet">
+    <div class="seg"><button class="on" data-m="in">Log in</button><button data-m="up">Sign up</button></div>
+    <form id="af">
+      <div id="nameRow" style="display:none"><label>Your name</label><input class="in" id="aName" placeholder="e.g. Sarah"></div>
+      <label>Email</label><input class="in" id="aEmail" type="email" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label><input class="in" id="aPass" type="password" placeholder="At least 6 characters" autocomplete="current-password">
+      <div class="err" id="aErr"></div>
+      <button class="big" id="aBtn">Log in</button>
+    </form>
+    <div class="note">Demo: accounts are stored only in this browser.</div>
+  </div>
+</div></div>
+
+<!-- HOME -->
+<div class="page" id="home">
+  <div class="top">
+    <div class="logo" id="hi">Hi!</div>
+    <p>Who's learning today?</p>
+    <div class="hs" id="kids"></div>
+  </div>
+  <div class="sec"><h2 id="todayH">Today's lessons</h2>
+    <div class="today" id="today"></div>
+    <div style="margin-top:8px"><div class="bar"><div id="prog"></div></div><div class="meta" id="progT"></div></div>
+  </div>
+  <div class="sec"><div class="search">🔍<input id="q" placeholder="Search lessons, worksheets…"></div></div>
+  <div class="sec"><div class="hs" id="chips"></div></div>
+  <div class="sec"><h2 id="recH">Recommended</h2><div class="list" id="grid"></div></div>
+</div>
+
+<!-- LIBRARY -->
+<div class="page" id="library">
+  <div class="top"><div class="logo">My Library</div><p style="margin:4px 0 0">Saved & downloaded resources</p></div>
+  <div class="sec"><div class="hs"><div class="chip on" data-l="saved">❤️ Saved</div><div class="chip" data-l="dl">⬇ Downloads</div></div></div>
+  <div class="sec"><div class="list" id="lib"></div></div>
+</div>
+
+<!-- TIMETABLE -->
+<div class="page" id="timetable">
+  <div class="top">
+    <div class="logo" id="ttH">Timetable</div>
+    <div class="wk"><button onclick="wk--;render()">‹</button><span id="wkL"></span><button onclick="wk++;render()">›</button></div>
+    <div class="hs" id="ttKids"></div>
+  </div>
+  <div class="sec"><div class="days" id="days"></div></div>
+  <div class="sec"><h2 id="dayH"></h2><div class="today" id="dayList"></div>
+    <button class="big" onclick="openLesson()">＋ Add lesson</button>
+    <button class="big ghost" style="margin-top:8px" onclick="copyDay()">Copy this day to every weekday</button>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="page" id="profile">
+  <div class="prof"><div class="av">🏡</div><h2 id="pName"></h2><p id="pEmail"></p></div>
+  <div class="sec" style="padding-top:6px"><h2>My learners</h2></div>
+  <div class="box" id="kidList"></div>
+  <div class="box">
+    <div class="mi">⭐ Upgrade to Family Plus<span>›</span></div>
+    <div class="mi">📅 Weekly schedule<span>›</span></div>
+    <div class="mi">📄 Progress reports<span>›</span></div>
+    <div class="mi">⚙️ Settings<span>›</span></div>
+    <div class="mi" id="logout" style="color:#e11d48">🚪 Log out<span>›</span></div>
+  </div>
+</div>
+
+<nav class="tabbar" id="tabbar">
+  <button class="tab on" data-p="home"><i>🏠</i>Home</button>
+  <button class="tab" data-p="timetable"><i>📅</i>Timetable</button>
+  <button class="tab" data-p="library"><i>📚</i>Library</button>
+  <button class="tab" data-p="profile"><i>👤</i>Profile</button>
+</nav>
+
+<div class="modal" id="kidModal"><div class="sheet">
+  <h2 style="margin:0">Add a learner</h2>
+  <label>Name</label><input class="in" id="kName" placeholder="e.g. Leo">
+  <label>Birthday</label><input class="in" id="kDob" type="date"><div class="meta" id="kAgeT" style="margin-top:4px"></div>
+  <label>Avatar</label><div class="emo" id="kEmo"></div>
+  <div class="err" id="kErr"></div>
+  <button class="big" id="kSave">Add learner</button>
+  <button class="big ghost" id="kCancel" style="margin-top:8px">Cancel</button>
+</div></div>
+<div class="modal" id="lesModal"><div class="sheet">
+  <h2 style="margin:0" id="lesH">Add lesson</h2>
+  <label>Time</label><input class="in" id="lTime" type="time" value="09:00">
+  <label>Subject</label><select class="in" id="lSub"></select>
+  <label>Lesson</label><select class="in" id="lRes"></select>
+  <input class="in" id="lCustom" placeholder="Or type your own lesson…" style="margin-top:8px">
+  <label>Repeat</label><select class="in" id="lRep"><option value="1">Just this day</option><option value="5">Every weekday</option></select>
+  <button class="big" id="lSave">Add lesson</button>
+  <button class="big ghost" style="margin-top:8px" onclick="$('lesModal').classList.remove('on')">Cancel</button>
+</div></div>
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+async function hash(s){if(!window.crypto?.subtle){let h=5381;for(const c of s)h=(h*33^c.charCodeAt(0))>>>0;return "d"+h.toString(16)}const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+
+// [title, subject, minAge, maxAge, emoji, colour, free]
+const R=[
+["Letter Sounds Phonics Pack","English",4,6,"🔤","#fde68a",1],
+["Counting to 20 Games","Maths",4,6,"🔢","#bfdbfe",1],
+["Colour Mixing Experiment","Art",4,7,"🎨","#fbcfe8",1],
+["Life Cycle of a Butterfly","Science",5,8,"🦋","#bbf7d0",1],
+["Fractions Pizza Worksheets","Maths",6,9,"🍕","#fed7aa",1],
+["Great Fire of London Story","History",5,8,"🔥","#fecdd3",0],
+["Times Tables Bingo 1–12","Maths",7,11,"✖️","#bfdbfe",0],
+["Romans Unit Study","History",7,11,"🏛️","#fecaca",0],
+["Solar System Project","Science",7,11,"🪐","#c7d2fe",1],
+["Rivers of the World Map","Geography",8,11,"🗺️","#a5f3fc",0],
+["Creative Writing Journal","English",9,14,"✍️","#e9d5ff",0],
+["Algebra Basics Booklet","Maths",11,14,"📐","#d9f99d",0],
+["Volcano Fact File","Geography",9,14,"🌋","#fdba74",1],
+["Chemistry Kitchen Lab","Science",11,16,"🧪","#bbf7d0",0],
+["Shakespeare for Teens","English",13,16,"🎭","#e9d5ff",0],
+["Nature Journal Walk","Science",4,16,"🍃","#d9f99d",1]];
+const subjects=["All","English","Maths","Science","History","Geography","Art"];
+const EMO=["🦊","🐻","🐼","🦁","🐸","🦄","🐙","🚀"];
+
+let users=store.get("glimmr_users",{}),me=store.get("glimmr_session",null);
+let sub="All",lib="saved",mode="in",emo=EMO[0],wk=0,selDay=(new Date().getDay()+6)%7;
+const U=()=>users[me];
+const save=()=>store.set("glimmr_users",users);
+const kid=()=>U().kids.find(k=>k.id==U().active)||U().kids[0];
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const todayKey=()=>ymd(new Date());
+function weekStart(off){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7+off*7);return d}
+const dayDate=i=>{const d=weekStart(wk);d.setDate(d.getDate()+i);return d};
+function ageOf(k){if(!k.dob)return k.age||7;const b=new Date(k.dob+"T00:00"),n=new Date();let a=n.getFullYear()-b.getFullYear();if(n.getMonth()<b.getMonth()||(n.getMonth()==b.getMonth()&&n.getDate()<b.getDate()))a--;return Math.max(a,0)}
+const level=a=>a<4?"Pre-school":a==4?"Reception":a<=15?"Year "+(a-4):"Year 11+";
+const isBday=k=>k.dob&&k.dob.slice(5)==todayKey().slice(5);
+const fits=(r,k)=>!k||(ageOf(k)>=r[2]&&ageOf(k)<=r[3]);
+
+function show(p){
+ document.querySelectorAll(".page").forEach(x=>x.classList.toggle("on",x.id==p));
+ document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.p==p));
+ $("tabbar").style.display=p=="auth"?"none":"flex";$("app").classList.toggle("auth",p=="auth");scrollTo(0,0)}
+
+// ---- auth
+document.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{mode=b.dataset.m;
+ document.querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("on",x==b));
+ $("nameRow").style.display=mode=="up"?"block":"none";$("aBtn").textContent=mode=="up"?"Create account":"Log in";$("aErr").textContent=""});
+$("af").onsubmit=async e=>{e.preventDefault();
+ const em=$("aEmail").value.trim().toLowerCase(),pw=$("aPass").value,nm=$("aName").value.trim();
+ if(!/^\S+@\S+\.\S+$/.test(em))return $("aErr").textContent="Enter a valid email";
+ if(pw.length<6)return $("aErr").textContent="Password must be at least 6 characters";
+ const h=await hash(em+":"+pw);
+ if(mode=="up"){
+  if(!nm)return $("aErr").textContent="Enter your name";
+  if(users[em])return $("aErr").textContent="An account with that email already exists";
+  users[em]={name:nm,pw:h,kids:[],saved:[],dls:[],done:{}};save();
+ }else{
+  if(!users[em]||users[em].pw!=h)return $("aErr").textContent="Wrong email or password";
+ }
+ me=em;store.set("glimmr_session",me);$("af").reset();start();
+ if(mode=="up"){toast("Welcome! Add your first learner 👋");openKid()}
+};
+$("logout").onclick=()=>{me=null;store.set("glimmr_session",null);show("auth")};
+
+// ---- learners
+$("kDob").max=todayKey();
+function openKid(){$("kName").value="";$("kDob").value="";$("kAgeT").textContent="";emo=EMO[0];drawEmo();$("kErr").textContent="";$("kidModal").classList.add("on")}
+$("kDob").oninput=()=>{const a=ageOf({dob:$("kDob").value});$("kAgeT").textContent=$("kDob").value?`Age ${a} · starts at ${level(a)} level`:""};
+function drawEmo(){$("kEmo").innerHTML=EMO.map(e=>`<span class="${e==emo?"on":""}" onclick="emo='${e}';drawEmo()">${e}</span>`).join("")}
+$("kCancel").onclick=()=>$("kidModal").classList.remove("on");
+$("kSave").onclick=()=>{const n=$("kName").value.trim(),dob=$("kDob").value;
+ if(!n)return $("kErr").textContent="Enter a name";if(!dob)return $("kErr").textContent="Enter a birthday";
+ const k={id:Date.now(),name:n,dob,emo};genTT(k);U().kids.push(k);U().active=k.id;save();
+ $("kidModal").classList.remove("on");render();toast(n+" added — timetable ready 🎉")};
+function delKid(id){if(!confirm("Remove this learner?"))return;U().kids=U().kids.filter(k=>k.id!=id);save();render()}
+
+// ---- timetable: k.tt[0..6] = [{id,time,sub,title,emo}]
+const TIMES=["09:00","10:00","11:15","13:30"];
+const nid=()=>Date.now()*100+Math.floor(Math.random()*100);
+function genTT(k){const pool=R.filter(r=>fits(r,k));k.tt=[[],[],[],[],[],[],[]];
+ for(let d=0;d<5&&pool.length;d++){const used=new Set(),j=(d*3)%pool.length;
+  for(const r of [...pool.slice(j),...pool.slice(0,j)]){if(used.has(r[1]))continue;used.add(r[1]);
+   k.tt[d].push({id:nid(),time:TIMES[k.tt[d].length],sub:r[1],title:r[0],emo:r[4]});if(k.tt[d].length==4)break}}
+ k.ttAge=ageOf(k)}
+const sorted=a=>[...a].sort((x,y)=>x.time.localeCompare(y.time));
+function lessonRow(l,dk,removable){const done=(U().done[dk]||[]).includes(l.id);
+ return `<div class="ls ${done?"done":""}" onclick="tick('${dk}',${l.id})"><span class="tm">${l.time}</span><span class="ck">✓</span><span style="font-size:22px">${l.emo}</span><div style="min-width:0"><b>${l.sub}</b><div class="meta">${l.title}</div></div>${removable?`<span class="x" onclick="event.stopPropagation();rmLesson(${l.id})">✕</span>`:""}</div>`}
+function rmLesson(id){const k=kid();k.tt[selDay]=k.tt[selDay].filter(l=>l.id!=id);save();render();toast("Lesson removed")}
+function copyDay(){const k=kid();for(let d=0;d<5;d++)if(d!=selDay)k.tt[d]=k.tt[selDay].map(l=>({...l,id:nid()}));save();render();toast("Copied to Mon–Fri")}
+function fillRes(){const k=kid(),s=$("lSub").value;$("lRes").innerHTML=R.filter(r=>r[1]==s&&fits(r,k)).map(r=>`<option>${r[0]}</option>`).join("")||"<option value=''>No resources for this age — type your own below</option>"}
+function openLesson(){if(!kid())return toast("Add a learner first");$("lSub").innerHTML=subjects.slice(1).map(s=>`<option>${s}</option>`).join("")+"<option>PE</option><option>Music</option><option>Life skills</option>";
+ fillRes();$("lCustom").value="";$("lRep").value="1";$("lesH").textContent="Add lesson · "+DAYS[selDay];$("lesModal").classList.add("on")}
+$("lSub").onchange=fillRes;
+$("lSave").onclick=()=>{const k=kid(),s=$("lSub").value,t=$("lCustom").value.trim()||$("lRes").value;if(!t)return toast("Pick or type a lesson");
+ const r=R.find(r=>r[0]==t),days=$("lRep").value=="5"?[0,1,2,3,4]:[selDay];
+ days.forEach(d=>k.tt[d].push({id:nid(),time:$("lTime").value||"09:00",sub:s,title:t,emo:r?r[4]:"📘"}));
+ save();$("lesModal").classList.remove("on");render();toast("Lesson added ✅")};
+function regen(){const k=kid();genTT(k);save();render();toast(`Timetable updated for age ${ageOf(k)} 🚀`)}
+
+function card(r,i){const u=U();return `<div class="card"><div class="th" style="background:${r[5]}">${r[4]}${r[6]?'<span class="free">FREE</span>':""}</div><div class="cb"><h3>${r[0]}</h3><div class="meta">${r[1]} · Ages ${r[2]}–${r[3]}</div></div><div class="acts"><button class="ib" onclick="fav(${i})">${u.saved.includes(i)?"❤️":"♡"}</button><button class="dl" onclick="dl(${i})">⬇</button></div></div>`}
+const kidChips=k=>U().kids.map(c=>`<div class="kid ${k&&c.id==k.id?"on":""}" onclick="pick(${c.id})"><span class="e">${c.emo}</span>${c.name}</div>`).join("")+`<div class="kid" onclick="openKid()"><span class="e">＋</span>Add</div>`;
+
+function render(){
+ const u=U(),k=kid();
+ $("hi").textContent="Hi, "+u.name+" 👋";
+ $("kids").innerHTML=$("ttKids").innerHTML=kidChips(k);
+ if(k){
+  const a=ageOf(k),dk=k.id+"_"+todayKey(),ls=sorted(k.tt[(new Date().getDay()+6)%7]),done=(u.done[dk]||[]).filter(id=>ls.some(l=>l.id==id));
+  let pre="";
+  if(isBday(k))pre+=`<div class="bday">🎂 Happy birthday ${k.name}! You're ${a} today!</div><div style="height:10px"></div>`;
+  if(k.ttAge!=a)pre+=`<div class="bday" style="background:linear-gradient(90deg,#5b3fd6,#14b8a6)">🚀 ${k.name} is now ${a} (${level(a)})!<button class="big" style="background:#fff;color:var(--pri);margin-top:10px" onclick="regen()">Level up timetable</button></div><div style="height:10px"></div>`;
+  $("todayH").innerHTML=pre+k.name+"'s lessons today <span class='meta'>· "+level(a)+"</span>";
+  $("today").innerHTML=ls.length?ls.map(l=>lessonRow(l,dk)).join(""):'<div class="empty">No lessons today — enjoy the break! 🌈</div>';
+  const pc=ls.length?Math.round(done.length/ls.length*100):0;$("prog").style.width=pc+"%";
+  $("progT").textContent=!ls.length?"":pc==100?"All done today — amazing! 🌟":`${done.length} of ${ls.length} lessons complete`;
+  $("recH").textContent=`Recommended for age ${a}`;
+  $("ttH").textContent=k.name+"'s timetable";
+  const ws=weekStart(wk),we=new Date(ws);we.setDate(we.getDate()+6);
+  const f=d=>d.toLocaleDateString(undefined,{day:"numeric",month:"short"});
+  $("wkL").textContent=wk==0?"This week":f(ws)+" – "+f(we);
+  $("days").innerHTML=DAYS.map((n,i)=>{const d=dayDate(i),dd=u.done[k.id+"_"+ymd(d)]||[];
+   return `<div class="day ${i==selDay?"on":""} ${ymd(d)==todayKey()?"now":""}" onclick="selDay=${i};render()">${n}<b>${d.getDate()}</b><div class="dots">${k.tt[i].map(l=>dd.includes(l.id)?"●":"○").join("")}</div></div>`}).join("");
+  const sd=dayDate(selDay),sk=k.id+"_"+ymd(sd);
+  $("dayH").textContent=sd.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})+(k.dob.slice(5)==ymd(sd).slice(5)?" 🎂":"");
+  $("dayList").innerHTML=k.tt[selDay].length?sorted(k.tt[selDay]).map(l=>lessonRow(l,sk,1)).join(""):'<div class="empty">No lessons — tap “Add lesson”</div>';
+ }else{
+  $("todayH").textContent="Today's lessons";$("today").innerHTML='<div class="empty">Add a learner to get a timetable</div>';
+  $("prog").style.width=0;$("progT").textContent="";$("recH").textContent="All resources";
+  $("ttH").textContent="Timetable";$("wkL").textContent="";$("days").innerHTML="";$("dayH").textContent="";$("dayList").innerHTML='<div class="empty">Add a learner first</div>';
+ }
+ const q=$("q").value.toLowerCase();
+ const l=R.map((r,i)=>[r,i]).filter(([r])=>fits(r,k)&&(sub=="All"||r[1]==sub)&&r[0].toLowerCase().includes(q));
+ $("chips").innerHTML=subjects.map(s=>`<div class="chip ${s==sub?"on":""}" onclick="sub='${s}';render()">${s}</div>`).join("");
+ $("grid").innerHTML=l.length?l.map(([r,i])=>card(r,i)).join(""):'<div class="empty">No resources found 🔍</div>';
+ const set=lib=="saved"?u.saved:u.dls;
+ $("lib").innerHTML=set.length?set.map(i=>card(R[i],i)).join(""):`<div class="empty">${lib=="saved"?"Tap ♡ on a resource to save it":"Nothing downloaded yet"}</div>`;
+ $("pName").textContent=u.name;$("pEmail").textContent=me;
+ $("kidList").innerHTML=u.kids.map(c=>`<div class="mi"><span>${c.emo} ${c.name} <small>· age ${ageOf(c)} · ${level(ageOf(c))} · 🎂 ${new Date(c.dob+"T00:00").toLocaleDateString(undefined,{day:"numeric",month:"short"})}</small></span><span onclick="delKid(${c.id})" style="color:var(--mut)">✕</span></div>`).join("")+`<div class="mi" onclick="openKid()" style="color:var(--pri)">＋ Add learner<span>›</span></div>`;
+}
+function pick(id){U().active=id;save();render()}
+function tick(dk,i){const d=U().done[dk]=U().done[dk]||[];const j=d.indexOf(i);j<0?d.push(i):d.splice(j,1);save();render();if(j<0)toast("Nice work! ⭐")}
+function fav(i){const s=U().saved,j=s.indexOf(i);j<0?s.push(i):s.splice(j,1);save();render()}
+function dl(i){if(!U().dls.includes(i))U().dls.push(i);save();toast("Downloading “"+R[i][0]+"”");render()}
+function toast(t){const e=$("toast");e.textContent=t;e.style.opacity=1;clearTimeout(e._t);e._t=setTimeout(()=>e.style.opacity=0,1800)}
+
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>show(b.dataset.p));
+document.querySelectorAll("[data-l]").forEach(c=>c.onclick=()=>{document.querySelectorAll("[data-l]").forEach(x=>x.classList.remove("on"));c.classList.add("on");lib=c.dataset.l;render()});
+$("q").addEventListener("input",render);
+function start(){U().kids.forEach(k=>{if(!k.dob){const d=new Date();d.setFullYear(d.getFullYear()-(k.age||7));k.dob=ymd(d)}if(!k.tt)genTT(k)});save();render();show("home")}
+me&&users[me]?start():show("auth");
+</script>
+</body>
+</html>
