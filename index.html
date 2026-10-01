@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Glimmr Homeschool</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 :root{--pri:#5b3fd6;--pri2:#7c5cff;--acc:#ffb703;--ink:#1f1b3a;--mut:#6b6788;--bg:#f7f5ff;--line:#e6e2f7;--ok:#22c55e}
@@ -89,7 +90,7 @@ label{display:block;font-weight:700;font-size:13px;margin:12px 0 5px}
       <div class="err" id="aErr"></div>
       <button class="big" id="aBtn">Log in</button>
     </form>
-    <div class="note">Demo: accounts are stored only in this browser.</div>
+    <div class="note">Your account syncs across all your devices 🔒</div>
   </div>
 </div></div>
 
@@ -199,10 +200,16 @@ const R=[
 const subjects=["All","English","Maths","Science","History","Geography","Art"];
 const EMO=["🦊","🐻","🐼","🦁","🐸","🦄","🐙","🚀"];
 
-let users=store.get("glimmr_users",{}),me=store.get("glimmr_session",null);
+const sb=supabase.createClient("https://rfiuaaecacvdslumxzpb.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmaXVhYWVjYWN2ZHNsdW14enBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4ODY2NTEsImV4cCI6MjEwNjQ2MjY1MX0.Lg8CV-32bha0pyO96cS60mVGCruamWbC9EVWhsVRgu4");
+let me=null,uid=null,data=null,saveT;
 let sub="All",lib="saved",mode="in",emo=EMO[0],wk=0,selDay=(new Date().getDay()+6)%7;
-const U=()=>users[me];
-const save=()=>store.set("glimmr_users",users);
+const U=()=>data;
+function save(){clearTimeout(saveT);saveT=setTimeout(async()=>{const {error}=await sb.from("profiles").upsert({id:uid,data,updated_at:new Date().toISOString()});if(error)toast("⚠️ Couldn't save: "+error.message)},400)}
+async function load(user){me=user.email;uid=user.id;
+ const {data:row,error}=await sb.from("profiles").select("data").eq("id",uid).maybeSingle();
+ if(error){show("auth");$("aErr").textContent="Couldn't load your data: "+error.message;return}
+ data=row?.data||{name:user.user_metadata?.name||me.split("@")[0],kids:[],saved:[],dls:[],done:{}};
+ start()}
 const kid=()=>U().kids.find(k=>k.id==U().active)||U().kids[0];
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -227,18 +234,16 @@ $("af").onsubmit=async e=>{e.preventDefault();
  const em=$("aEmail").value.trim().toLowerCase(),pw=$("aPass").value,nm=$("aName").value.trim();
  if(!/^\S+@\S+\.\S+$/.test(em))return $("aErr").textContent="Enter a valid email";
  if(pw.length<6)return $("aErr").textContent="Password must be at least 6 characters";
- const h=await hash(em+":"+pw);
- if(mode=="up"){
-  if(!nm)return $("aErr").textContent="Enter your name";
-  if(users[em])return $("aErr").textContent="An account with that email already exists";
-  users[em]={name:nm,pw:h,kids:[],saved:[],dls:[],done:{}};save();
- }else{
-  if(!users[em]||users[em].pw!=h)return $("aErr").textContent="Wrong email or password";
- }
- me=em;store.set("glimmr_session",me);$("af").reset();start();
+ if(mode=="up"&&!nm)return $("aErr").textContent="Enter your name";
+ $("aBtn").disabled=true;$("aErr").textContent="";
+ const r=mode=="up"?await sb.auth.signUp({email:em,password:pw,options:{data:{name:nm}}}):await sb.auth.signInWithPassword({email:em,password:pw});
+ $("aBtn").disabled=false;
+ if(r.error)return $("aErr").textContent=r.error.message;
+ if(!r.data.session){$("aErr").style.color="var(--ok)";$("aErr").textContent="Check your email to confirm your account, then log in.";return}
+ $("af").reset();await load(r.data.user);
  if(mode=="up"){toast("Welcome! Add your first learner 👋");openKid()}
 };
-$("logout").onclick=()=>{me=null;store.set("glimmr_session",null);show("auth")};
+$("logout").onclick=async()=>{await sb.auth.signOut();me=null;data=null;show("auth")};
 
 // ---- learners
 $("kDob").max=todayKey();
@@ -325,7 +330,8 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>show(b.dataset.p));
 document.querySelectorAll("[data-l]").forEach(c=>c.onclick=()=>{document.querySelectorAll("[data-l]").forEach(x=>x.classList.remove("on"));c.classList.add("on");lib=c.dataset.l;render()});
 $("q").addEventListener("input",render);
 function start(){U().kids.forEach(k=>{if(!k.dob){const d=new Date();d.setFullYear(d.getFullYear()-(k.age||7));k.dob=ymd(d)}if(!k.tt)genTT(k)});save();render();show("home")}
-me&&users[me]?start():show("auth");
+show("auth");
+sb.auth.getSession().then(({data:{session}})=>{if(session)load(session.user)});
 </script>
 </body>
 </html>
