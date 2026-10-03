@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Glimmr Homeschool</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#5b3fd6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Glimmr">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -93,7 +100,18 @@ textarea.in{min-height:80px;resize:vertical}
 #sheetDoc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;font-size:16px}
 #sheetDoc h2{margin:0 0 6px}#sheetDoc li{margin:0 0 16px;line-height:1.5}
 .dbox{border:2px dashed #bbb;border-radius:10px;height:180px;margin:10px 0 16px}
-@media print{body *{visibility:hidden}#sheetDoc,#sheetDoc *{visibility:visible}#sheetDoc{position:absolute;left:0;top:0;width:100%;border:0}}
+.rew{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.rew div{background:#ffffff26;border-radius:14px;padding:8px;text-align:center;cursor:pointer}.rew b{display:block;font-size:20px}.rew span{font-size:11px;opacity:.9}
+.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bdg{background:var(--bg);border-radius:14px;padding:10px 6px;text-align:center;font-size:12px}.bdg i{font-style:normal;font-size:32px;display:block}
+.bdg.lock{opacity:.4;filter:grayscale(1)}.bdg b{display:block;font-size:13px}
+.sw{position:relative;width:48px;height:28px;flex:0 0 auto}.sw input{display:none}.sw span{position:absolute;inset:0;background:var(--line);border-radius:99px;transition:.2s}
+.sw span:after{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.sw input:checked+span{background:var(--ok)}.sw input:checked+span:after{left:23px}
+#repDoc{background:#fff;border-radius:16px;border:1px solid var(--line);padding:16px}
+#repDoc h3{margin:16px 0 8px}#repDoc table{width:100%;border-collapse:collapse;font-size:14px}#repDoc td,#repDoc th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat div{background:var(--bg);border-radius:12px;padding:10px;text-align:center;font-size:12px}.stat b{display:block;font-size:22px;color:var(--pri)}
+@media print{body *{visibility:hidden}#sheetDoc,#sheetDoc *,#repDoc,#repDoc *{visibility:visible}#sheetDoc,#repDoc{position:absolute;left:0;top:0;width:100%;border:0}}
 </style>
 </head>
 <body><div class="app bare" id="app">
@@ -140,6 +158,7 @@ textarea.in{min-height:80px;resize:vertical}
   <div class="top">
     <div class="logo" id="cHi">Hi!</div>
     <p id="cSub" style="margin:4px 0 0"></p>
+    <div id="cRew"></div>
   </div>
   <div class="sec"><div id="cBday"></div><div class="days" id="cDays"></div></div>
   <div class="sec"><h2 id="cDayH"></h2><div class="today" id="cList"></div>
@@ -160,7 +179,21 @@ textarea.in{min-height:80px;resize:vertical}
     <div style="margin-top:8px"><div class="bar"><div id="prog"></div></div><div class="meta" id="progT"></div></div>
   </div>
   <div class="sec"><h2 id="recH">Suggested work</h2><div class="list" id="rec"></div>
-    <button class="big ghost" onclick="show('work')">Browse all work</button></div>
+    <button class="big ghost" onclick="show('work')">Browse all work</button>
+    <button class="big ghost" style="margin-top:8px" onclick="show('report')">📊 Weekly progress report</button></div>
+</div>
+
+<!-- REPORT -->
+<div class="page" id="report">
+  <div class="top">
+    <div class="logo">📊 Progress report</div>
+    <div class="wk"><button onclick="rwk--;renderReport()">‹</button><span id="rwkL"></span><button onclick="rwk++;renderReport()">›</button></div>
+    <div class="hs" id="repKids"></div>
+  </div>
+  <div class="sec"><div id="repDoc"></div>
+    <button class="big" onclick="print()">🖨 Print / save as PDF</button>
+    <button class="big ghost" onclick="show('profile')">‹ Back</button>
+  </div>
 </div>
 
 <!-- TIMETABLE -->
@@ -190,6 +223,11 @@ textarea.in{min-height:80px;resize:vertical}
   <div class="prof"><div class="av">🏡</div><h2 id="pName"></h2><p id="pEmail"></p></div>
   <div class="sec" style="padding-top:6px"><h2>My learners</h2></div>
   <div class="box" id="kidList"></div>
+  <div class="sec" style="padding-top:0"><h2>Settings</h2></div>
+  <div class="box">
+    <div class="mi" onclick="show('report')">📊 Progress reports<span>›</span></div>
+    <div class="mi"><span>🏅 Rewards for learners<br><small>Stars, streaks and badges</small></span><label class="sw" style="margin:0"><input type="checkbox" id="rwOn"><span></span></label></div>
+  </div>
   <div class="box"><div class="mi" id="logout" style="color:var(--bad)">🚪 Log out<span>›</span></div></div>
 </div>
 
@@ -238,6 +276,12 @@ textarea.in{min-height:80px;resize:vertical}
   <div id="qrBox"></div>
   <button class="big ghost" id="qrNew">Make a new code (old one stops working)</button>
   <button class="big" onclick="closeM('qrModal')">Done</button>
+</div></div>
+
+<div class="modal" id="bdgModal"><div class="sheet">
+  <h2 style="margin:0 0 4px" id="bdgH">My badges</h2><p class="meta" id="bdgSub" style="margin:0 0 14px"></p>
+  <div class="badges" id="bdgList"></div>
+  <button class="big" onclick="closeM('bdgModal')">Close</button>
 </div></div>
 
 <!-- generic choice -->
@@ -348,12 +392,13 @@ const rkey=(k,d,i)=>k+"|"+d+"|"+i;
 const repLabel=a=>a.rep=="weekly"?"Every "+DAYL[dowOf(a.date)]:a.rep=="weekdays"?"Every weekday":"";
 
 // ================= NAV =================
-const PARENT_PAGES=["home","timetable","work","profile"];
+const PARENT_PAGES=["home","timetable","work","profile","report"];
 function show(p){
  document.querySelectorAll(".page").forEach(x=>x.classList.toggle("on",x.id==p));
  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.p==p));
  const par=PARENT_PAGES.includes(p);$("tabbar").style.display=par?"flex":"none";$("app").classList.toggle("bare",!par);scrollTo(0,0);
- if(par&&data){render();loadResults()}}
+ if(par&&data){render();loadResults()}
+ if(p=="report")renderReport()}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>show(b.dataset.p));
 const closeM=id=>$(id).classList.remove("on");
 function toast(t){const e=$("toast");e.textContent=t;e.style.opacity=1;clearTimeout(e._t);e._t=setTimeout(()=>e.style.opacity=0,2000)}
@@ -390,7 +435,7 @@ async function load(user){me=user.email;uid=user.id;
  if(!data.plan)data.plan=[];
  show("home")}
 async function loadResults(){const {data:r,error}=await sb.from("results").select("kid,day,item,result");if(error)return;
- RES={};r.forEach(x=>RES[rkey(x.kid,x.day,x.item)]=x.result);render()}
+ RES={};r.forEach(x=>RES[rkey(x.kid,x.day,x.item)]=x.result);render();if($("report").classList.contains("on"))renderReport()}
 
 // ================= LEARNERS =================
 $("kDob").max=todayKey();
@@ -399,7 +444,7 @@ $("kDob").oninput=()=>{const a=ageOf({dob:$("kDob").value});$("kAgeT").textConte
 function drawEmo(){$("kEmo").innerHTML=EMO.map(e=>`<span class="${e==emo?"on":""}" onclick="emo='${e}';drawEmo()">${e}</span>`).join("")}
 $("kSave").onclick=()=>{const n=$("kName").value.trim(),dob=$("kDob").value;
  if(!n)return $("kErr").textContent="Enter a name";if(!dob)return $("kErr").textContent="Enter a birthday";
- const k={id:nid(),name:n,dob,emo};data.kids.push(k);data.active=k.id;save();
+ const k={id:nid(),name:n,dob,emo,rw:data.rewards!==false};data.kids.push(k);data.active=k.id;save();
  closeM("kidModal");render();toast(n+" added 🎉 Now add work in Timetable")};
 async function delKid(id){if(await ask("Remove this learner and their timetable?",["Remove","Cancel"]))return;
  data.kids=data.kids.filter(k=>k.id!=id);data.plan=data.plan.filter(a=>a.kid!=id);save();
@@ -497,6 +542,7 @@ function render(){
  $("tchips").innerHTML=["All","digital","paper","video"].map(s=>`<div class="chip ${s==tsub?"on":""}" onclick="tsub='${s}';render()">${s=="All"?"All types":TY[s]}</div>`).join("");
  const l=W.filter(w=>fits(w,k)&&(sub=="All"||w.s==sub)&&(tsub=="All"||w.type==tsub)&&(w.t+" "+w.s).toLowerCase().includes(q));
  $("grid").innerHTML=l.length?l.map(workCard).join(""):'<div class="empty">No work found for this age 🔍</div>';
+ $("rwOn").checked=data.rewards!==false;
  $("pName").textContent=data.name;$("pEmail").textContent=me;
  $("kidList").innerHTML=data.kids.map(c=>`<div class="mi"><span>${c.emo} ${esc(c.name)} <small>· age ${ageOf(c)} · ${level(ageOf(c))} · 🎂 ${new Date(c.dob+"T00:00").toLocaleDateString(undefined,{day:"numeric",month:"short"})}</small></span><span style="display:flex;gap:4px;flex:0 0 auto"><button class="sq l" style="font-size:13px;padding:0 8px" onclick="showQR('${c.id}')">📱 QR</button><button class="sq l" onclick="delKid('${c.id}')">✕</button></span></div>`).join("")+`<div class="mi" onclick="openKid()" style="color:var(--pri)">＋ Add learner<span>›</span></div>`;
 }
@@ -517,6 +563,7 @@ async function loadChild(t){
  cDay=(new Date().getDay()+6)%7;show("child");renderChild()}
 function renderChild(){const k=CH.kid,T=todayKey(),a=ageOf(k);
  $("cHi").textContent=`Hi ${k.name} ${k.emo}`;$("cSub").textContent=`${level(a)} · Let's learn!`;
+ $("cRew").innerHTML=k.rw===false?"":(st=>`<div class="rew" onclick="showBadges()"><div>⭐<b>${st.stars}</b><span>Stars</span></div><div>🔥<b>${st.streak}</b><span>Day streak</span></div><div>🏅<b>${st.badges.length}/${BADGES.length}</b><span>Badges</span></div></div>`)(stats(CH.plan,k.id));
  $("cBday").innerHTML=isBday(k)?`<div class="bday">🎂 Happy birthday ${esc(k.name)}! You're ${a}!</div>`:"";
  $("cDays").innerHTML=DAYS.map((n,i)=>{const D=ymd(dayDate(i,0)),L=itemsFor(CH.plan,k.id,D);
   return `<div class="day ${i==cDay?"on":""} ${D==T?"now":""}" onclick="cDay=${i};renderChild()">${n}<b>${dayDate(i,0).getDate()}</b><div class="dots">${L.slice(0,5).map(l=>RES[rkey(k.id,D,l.id)]?"●":"○").join("")}</div></div>`}).join("");
@@ -558,9 +605,71 @@ function answer(j){const q=P.qs[P.i],b=$("pw").querySelectorAll(".opt");b.forEac
  setTimeout(()=>{P.i++;drawP()},j==q.a?700:1400)}
 async function finish(res){const c=P.ctx;
  if(c.preview){closeP();return toast("Preview finished")}
+ P_before=childT?stats(CH.plan,c.kid).badges.map(b=>b[0]):[];
  res.at=new Date().toISOString();RES[rkey(c.kid,c.day,c.aid)]=res;closeP();
- if(childT){renderChild();const {error}=await sb.rpc("child_done",{t:childT,d:c.day,i:c.aid,res});toast(error?"⚠️ Not saved: "+error.message:"Brilliant! Work saved 🌟")}
+ if(childT){renderChild();if(CH.kid.rw!==false){const nb=stats(CH.plan,CH.kid.id).badges.filter(b=>!P_before.includes(b[0]));toast(`+${starsFor(res)} ⭐`);if(nb.length)setTimeout(()=>showBadges(nb),700)}const {error}=await sb.rpc("child_done",{t:childT,d:c.day,i:c.aid,res});if(error)toast("⚠️ Not saved: "+error.message);else if(CH.kid.rw===false)toast("Brilliant! Work saved 🌟")}
  else{render();await sb.from("results").upsert({parent:uid,kid:String(c.kid),day:c.day,item:c.aid,result:res});toast("Saved ✅")}}
+
+// ================= REWARDS =================
+let P_before=[];
+const BADGES=[
+["first","🌱","First Step","Finish your first activity",s=>s.count>=1],
+["five","✋","High Five","Finish 5 activities",s=>s.count>=5],
+["twenty","💪","Hard Worker","Finish 20 activities",s=>s.count>=20],
+["quiz","🧠","Quiz Whiz","Get a perfect quiz score",s=>s.perfect>=1],
+["champ","🏆","Champion","Get 5 perfect quiz scores",s=>s.perfect>=5],
+["s3","🔥","On Fire","3-day streak",s=>s.streak>=3],
+["s7","🚀","Rocket Week","7-day streak",s=>s.streak>=7],
+["st50","⭐","Star Collector","Earn 50 stars",s=>s.stars>=50],
+["st100","🌟","Superstar","Earn 100 stars",s=>s.stars>=100],
+["math","➗","Mathlete","5 Maths activities",s=>(s.subj.Maths||0)>=5],
+["book","📚","Bookworm","5 English activities",s=>(s.subj.English||0)>=5],
+["sci","🔬","Scientist","5 Science activities",s=>(s.subj.Science||0)>=5],
+["out","🌳","Explorer","Do an outdoor activity or trip",s=>(s.types.outdoor||0)+(s.types.trip||0)>=1],
+["life","🏠","Life Skills","Do a real-life activity",s=>(s.types.life||0)>=1],
+["all","🎨","All-Rounder","Work in 5 different subjects",s=>Object.keys(s.subj).length>=5]];
+// 1 star per activity; quizzes: +2 for perfect, +1 for 70%+
+function starsFor(r){let n=1;if(r?.score){const [a,b]=r.score.split("/").map(Number);if(a==b)n+=2;else if(a>=b*.7)n+=1}return n}
+function stats(plan,kidId){const st={count:0,stars:0,perfect:0,streak:0,subj:{},types:{}};
+ for(const key in RES){const [k,D,aid]=key.split("|");if(k!=String(kidId)||!RES[key])continue;const r=RES[key];
+  st.count++;st.stars+=starsFor(r);if(r.score){const [a,b]=r.score.split("/").map(Number);if(a==b)st.perfect++}
+  const as=plan.find(x=>x.id==aid);if(as){const w=workOf(as);if(w.s)st.subj[w.s]=(st.subj[w.s]||0)+1;st.types[w.type]=(st.types[w.type]||0)+1}}
+ // streak: consecutive days with all work done; days with nothing set don't break it; an unfinished today doesn't either
+ const mine=plan.filter(a=>a.kid==kidId);
+ if(mine.length){const first=mine.map(a=>a.date).sort()[0],d=new Date();
+  for(let i=0;i<500;i++){const D=ymd(d);if(D<first)break;const L=itemsFor(plan,kidId,D);
+   if(L.length){if(L.every(x=>RES[rkey(kidId,D,x.id)]))st.streak++;else if(i>0)break}
+   d.setDate(d.getDate()-1)}}
+ st.badges=BADGES.filter(b=>b[4](st));return st}
+function showBadges(newOnes){const k=CH?.kid;if(!k)return;const st=stats(CH.plan,k.id),got=st.badges.map(b=>b[0]);
+ const list=newOnes||BADGES;
+ $("bdgH").textContent=newOnes?"🎉 New badge"+(newOnes.length>1?"s":"")+"!":"My badges";
+ $("bdgSub").textContent=newOnes?"Amazing work, "+k.name+"!":`${got.length} of ${BADGES.length} collected · ⭐ ${st.stars} stars`;
+ $("bdgList").innerHTML=list.map(b=>`<div class="bdg ${got.includes(b[0])?"":"lock"}"><i>${b[1]}</i><b>${b[2]}</b>${b[3]}</div>`).join("");
+ $("bdgModal").classList.add("on")}
+$("rwOn").onchange=()=>{data.rewards=$("rwOn").checked;data.kids.forEach(k=>k.rw=data.rewards);save();toast(data.rewards?"Rewards turned on 🏅":"Rewards turned off")};
+
+// ================= REPORTS =================
+let rwk=0;
+function renderReport(){if(!data)return;const k=kid();
+ $("repKids").innerHTML=data.kids.map(c=>`<div class="kid ${k&&c.id==k.id?"on":""}" onclick="data.active='${c.id}';renderReport()"><span class="e">${c.emo}</span>${esc(c.name)}</div>`).join("");
+ const ws=weekStart(rwk),we=new Date(ws);we.setDate(we.getDate()+6);
+ const f=d=>d.toLocaleDateString(undefined,{day:"numeric",month:"short"});
+ $("rwkL").textContent=rwk==0?"This week":f(ws)+" – "+f(we);
+ if(!k){$("repDoc").innerHTML='<div class="empty">Add a learner first</div>';return}
+ let set=0,done=0,qs=0,qt=0,stars=0;const bySub={},days=[];
+ for(let i=0;i<7;i++){const dd=dayDate(i,rwk),D=ymd(dd),L=itemsFor(data.plan,k.id,D);if(!L.length)continue;
+  const rows=L.map(a=>{const w=workOf(a),r=RES[rkey(k.id,D,a.id)],s=w.s||"Other";set++;const b=bySub[s]=bySub[s]||[0,0];b[1]++;
+   if(r){done++;b[0]++;stars+=starsFor(r);if(r.score){const [x,y]=r.score.split("/").map(Number);qs+=x;qt+=y}}
+   return `<tr><td>${r?"✅":"⬜"}</td><td>${esc(s)}</td><td>${esc(w.t)}<div class="meta">${TY[w.type]||""}</div></td><td>${r?resultTxt(r).replace("⭐ ",""):"—"}</td></tr>`}).join("");
+  days.push(`<h3>${dd.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})}</h3><table>${rows}</table>`)}
+ const pct=set?Math.round(done/set*100):0,qa=qt?Math.round(qs/qt*100)+"%":"—";
+ $("repDoc").innerHTML=`<h2 style="margin:0">${k.emo} ${esc(k.name)}</h2><div class="meta">Age ${ageOf(k)} · ${level(ageOf(k))} · Week of ${ws.toLocaleDateString(undefined,{day:"numeric",month:"long",year:"numeric"})}</div>
+  <div class="stat" style="margin-top:14px"><div><b>${done}/${set}</b>Completed</div><div><b>${pct}%</b>Completion</div><div><b>${qa}</b>Quiz average</div></div>
+  ${data.rewards!==false?`<div class="meta" style="margin-top:8px;text-align:center">⭐ ${stars} stars this week · 🔥 current streak ${stats(data.plan,k.id).streak} days</div>`:""}
+  <h3>By subject</h3>${Object.keys(bySub).length?`<table><tr><th>Subject</th><th>Done</th><th style="width:40%"></th></tr>${Object.entries(bySub).map(([s,[a,b]])=>`<tr><td>${esc(s)}</td><td>${a} of ${b}</td><td><div class="bar" style="margin:0"><div style="width:${a/b*100}%"></div></div></td></tr>`).join("")}</table>`:'<div class="meta">No work set this week.</div>'}
+  ${days.join("")}
+  <div class="meta" style="margin-top:16px">Generated by Glimmr on ${new Date().toLocaleDateString()}</div>`}
 
 // ================= BOOT =================
 const cParam=new URLSearchParams(location.search).get("c");
