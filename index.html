@@ -123,6 +123,7 @@ textarea.in{min-height:80px;resize:vertical}
     <h2 style="margin:0 0 16px">Who's using Glimmr?</h2>
     <div class="who" onclick="goParent()"><span class="e">👩‍🏫</span><div><b>I'm a parent</b><span class="meta">Plan the week and set work</span></div></div>
     <div class="who" onclick="goChild()"><span class="e">🧒</span><div><b>I'm a learner</b><span class="meta">Scan your QR code to see your work</span></div></div>
+    <div class="note"><a href="privacy.html" target="_blank" style="color:var(--mut)">Privacy</a></div>
   </div>
 </div></div>
 
@@ -228,6 +229,7 @@ textarea.in{min-height:80px;resize:vertical}
     <div class="mi" onclick="show('report')">📊 Progress reports<span>›</span></div>
     <div class="mi"><span>🏅 Rewards for learners<br><small>Stars, streaks and badges</small></span><label class="sw" style="margin:0"><input type="checkbox" id="rwOn"><span></span></label></div>
   </div>
+  <div class="box"><a class="mi" href="privacy.html" target="_blank" style="color:inherit;text-decoration:none">🔒 Privacy<span>›</span></a><div class="mi" id="delAcct" style="color:var(--bad)">🗑 Delete all my data<span>›</span></div></div>
   <div class="box"><div class="mi" id="logout" style="color:var(--bad)">🚪 Log out<span>›</span></div></div>
 </div>
 
@@ -255,11 +257,13 @@ textarea.in{min-height:80px;resize:vertical}
   <div id="asPicked" class="card" style="margin-top:12px"></div>
   <div id="asCustom">
     <p class="meta" style="margin:6px 0 0">Real-life, outdoor or your own activity. For ready-made work, use the 📚 Work tab.</p>
+    <div id="mineRow"><label>⭐ My saved activities</label><div style="display:flex;gap:6px"><select class="in" id="mineSel"></select><button class="sq l" type="button" id="mineDel" title="Delete saved activity">🗑</button></div></div>
     <label>Title</label><input class="in" id="cT" placeholder="e.g. Nature walk, bake bread, library trip">
     <label>Subject</label><select class="in" id="cS"></select>
     <label>Type</label><select class="in" id="cY"><option value="outdoor">🌳 Outdoor</option><option value="life">🏠 Real life / practical</option><option value="trip">🚌 Trip / visit</option><option value="paper">📝 Paper / book</option><option value="video">🎬 Video</option><option value="digital">💻 Online link</option></select>
-    <label>Link (optional)</label><input class="in" id="cL" placeholder="https://…">
+    <label>Link (optional)</label><input class="in" id="cL" placeholder="https://… (YouTube links play inside the app)">
     <label>Instructions</label><textarea class="in" id="cN" placeholder="What should they do? One step per line."></textarea>
+    <label style="display:flex;align-items:center;gap:8px;font-weight:700"><input type="checkbox" id="cSave" checked style="width:20px;height:20px"> Save to my activities for next time</label>
   </div>
   <label>Day</label><input class="in" id="asDate" type="date">
   <label>Time</label><input class="in" id="asTime" type="time" value="09:00">
@@ -306,7 +310,7 @@ function mc(q,c,w){const o=shuf([c,...w]);return{q,o,a:o.indexOf(c)}}
 function num(q,c,neg){const w=new Set();while(w.size<3){const d=c+rnd(-5,5);if(d!=c&&(neg||d>0))w.add(d)}return mc(q,String(c),[...w].map(String))}
 const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
 const TY={digital:"💻 Digital",paper:"📝 Paper",video:"🎬 Video",outdoor:"🌳 Outdoor",life:"🏠 Real life",trip:"🚌 Trip"};
-const SUBJ=["English","Maths","Science","History","Geography","Art","Music","PE"];
+const SUBJ=["English","Maths","Science","History","Geography","Art","Music","PE","Life skills"];
 const BOX="[BOX]";
 const W=[
 // ---- Maths
@@ -360,6 +364,54 @@ const W=[
 {id:"a2",t:"Painting like Van Gogh",s:"Art",min:7,max:12,type:"video",e:"🌌",d:"Learn about The Starry Night, then paint your own.",yt:"Van Gogh Starry Night art lesson for kids",q:[["Which painting is Van Gogh famous for?","The Starry Night",["Mona Lisa","The Scream","Water Lilies"]],["Van Gogh was from…","the Netherlands",["Spain","Italy","USA"]]]},
 {id:"mu1",t:"Clap the Rhythm",s:"Music",min:5,max:10,type:"video",e:"🥁",d:"Clap along and learn about beat and rhythm.",yt:"rhythm for kids music lesson clapping",q:[["A steady beat that stays the same speed is called the…","pulse",["pitch","melody","volume"]],["How high or low a note sounds is its…","pitch",["tempo","rhythm","dynamics"]]]},
 {id:"p1",t:"Kids Yoga",s:"PE",min:4,max:11,type:"video",e:"🧘",d:"Get moving with a yoga adventure. Find some floor space!",yt:"cosmic kids yoga"},
+// ---- More: early years
+{id:"m13",t:"Shapes All Around",s:"Maths",min:4,max:6,type:"digital",e:"🔺",d:"Name the 2D shapes.",q:[["How many sides does a triangle have?","3",["4","5","2"]],["Which shape is round?","circle",["square","triangle","rectangle"]],["How many corners does a square have?","4",["3","5","0"]],["A rectangle has how many sides?","4",["3","6","5"]],["Which shape has 6 sides?","hexagon",["pentagon","square","circle"]]]},
+{id:"m14",t:"Shape Hunt",s:"Maths",min:4,max:7,type:"paper",e:"🔍",d:"Hunt around your home for shapes!",sheet:()=>["Find 3 things that are circles: ________________","Find 3 things that are squares: ________________","Find 3 things that are rectangles: ________________","Find 1 thing that is a triangle: ________________","Draw your favourite one here:",BOX]},
+{id:"m15",t:"Money: Counting Coins",s:"Maths",min:6,max:9,type:"digital",e:"🪙",d:"Add up coins (pence).",gen:()=>N(8,()=>{const c=[1,2,5,10,20,50],a=pick(c),b=pick(c),d=pick(c);return num(`${a}p + ${b}p + ${d}p = ?p`,a+b+d)})},
+{id:"m16",t:"Telling the Time",s:"Maths",min:6,max:9,type:"digital",e:"🕒",d:"O'clock, half past and quarter past.",gen:()=>N(8,()=>{const h=rnd(1,12),m=pick([0,15,30,45]),w={0:"o'clock",15:"quarter past",30:"half past",45:"quarter to"},hh=m==45?(h%12)+1:h,c=m==0?`${h} o'clock`:`${w[m]} ${hh}`;
+  const opts=new Set();while(opts.size<3){const h2=rnd(1,12),m2=pick([0,15,30,45]),hh2=m2==45?(h2%12)+1:h2,t=m2==0?`${h2} o'clock`:`${w[m2]} ${hh2}`;if(t!=c)opts.add(t)}
+  return mc(`What time is ${h}:${String(m).padStart(2,"0")}?`,c,[...opts])})},
+{id:"m17",t:"Place Value",s:"Maths",min:7,max:10,type:"digital",e:"🔢",d:"Hundreds, tens and ones.",gen:()=>N(10,()=>{const n=rnd(100,999),p=pick([["hundreds",100],["tens",10],["ones",1]]),d=Math.floor(n/p[1])%10;return num(`In ${n}, what digit is in the ${p[0]} place?`,d,1)})},
+{id:"m18",t:"Division Facts",s:"Maths",min:8,max:11,type:"digital",e:"➗",d:"Use your times tables to divide.",gen:()=>N(12,()=>{const a=rnd(2,12),b=rnd(2,12);return num(`${a*b} ÷ ${a} = ?`,b)})},
+{id:"m19",t:"Area & Perimeter",s:"Maths",min:9,max:13,type:"digital",e:"⬛",d:"Rectangles: area = length × width.",gen:()=>N(10,()=>{const l=rnd(2,12),w=rnd(2,12);return Math.random()<.5?num(`Area of a ${l}cm × ${w}cm rectangle? (cm²)`,l*w):num(`Perimeter of a ${l}cm × ${w}cm rectangle? (cm)`,2*(l+w))})},
+{id:"m20",t:"Negative Numbers",s:"Maths",min:10,max:14,type:"digital",e:"🌡️",d:"Add and subtract with negatives.",gen:()=>N(10,()=>{const a=rnd(-10,10),b=rnd(-10,10);return num(`${a} + (${b}) = ?`,a+b,1)})},
+{id:"m21",t:"Ratio & Sharing",s:"Maths",min:11,max:16,type:"digital",e:"⚖️",d:"Share amounts in a ratio.",gen:()=>N(8,()=>{const a=rnd(1,5),b=rnd(1,5),k=rnd(2,10);return num(`Share ${(a+b)*k} in the ratio ${a}:${b}. How much is the first share?`,a*k)})},
+{id:"m22",t:"Pythagoras",s:"Maths",min:13,max:16,type:"digital",e:"📏",d:"Find the hypotenuse (a² + b² = c²).",gen:()=>N(6,()=>{const t=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15],[7,24,25]]);return num(`Right triangle with sides ${t[0]} and ${t[1]}. Hypotenuse = ?`,t[2])})},
+{id:"m23",t:"Baking Maths",s:"Maths",min:6,max:12,type:"paper",e:"🧁",d:"Bake with a grown-up and use real measuring!",sheet:()=>["Choose a simple recipe (e.g. cupcakes).","Write each ingredient and how much: ________________","Weigh each ingredient on scales. Was it exact? ______","If we made DOUBLE, how much flour would we need? ______","How long in the oven? ______ If it goes in at 2:15, when does it come out? ______"]},
+{id:"e11",t:"Rhyme Time",s:"English",min:4,max:6,type:"digital",e:"🐱",d:"Find the words that rhyme.",q:[["Which rhymes with 'sun'?","bun",["cat","sock","hat"]],["Which rhymes with 'log'?","frog",["leg","bag","cup"]],["Which rhymes with 'bed'?","red",["bad","bin","bus"]],["Which rhymes with 'car'?","star",["cat","can","cow"]],["Which rhymes with 'cake'?","snake",["cook","kite","cup"]]]},
+{id:"e12",t:"Read Together",s:"English",min:4,max:8,type:"paper",e:"📚",d:"Share a picture book with a grown-up.",sheet:()=>["Book title: ________________","Who was in the story? ________________","What was your favourite part? Draw it:",BOX,"How many stars would you give it? ☆ ☆ ☆ ☆ ☆"]},
+{id:"e13",t:"Sentence Builders",s:"English",min:6,max:9,type:"digital",e:"🧱",d:"Make good sentences.",q:[["Which is a full sentence?","The cat sat on the mat.",["the cat on mat","Sat the cat.","cat mat sat"]],["Which joining word fits: 'I was hungry ___ I ate lunch.'","so",["but","or","because of"]],["Which word starts a question?","Where",["Because","The","And"]],["Which needs a full stop?","I like apples",["Do you like apples","What a big apple","Wow"]]]},
+{id:"e14",t:"Book Review",s:"English",min:8,max:13,type:"paper",e:"⭐",d:"Review a book you have finished.",sheet:()=>["Title and author: ________________","Main characters: ________________","Summary (no spoilers!): ________________","Best part and why: ________________","Who would enjoy this book? ________________","Rating: ☆ ☆ ☆ ☆ ☆"]},
+{id:"e15",t:"Prefixes & Suffixes",s:"English",min:8,max:12,type:"digital",e:"🔠",d:"Change words with beginnings and endings.",q:[["Which prefix makes 'happy' mean the opposite?","un",["dis","re","pre"]],["Which suffix makes 'hope' into an adjective?","ful",["ly","ment","ed"]],["'Rewrite' means…","write again",["write before","not write","write badly"]],["Which is spelled correctly?","disappear",["dissappear","disapear","disapper"]],["Which suffix turns 'quick' into an adverb?","ly",["ness","er","ful"]]]},
+{id:"e16",t:"Poetry Writing",s:"English",min:9,max:14,type:"paper",e:"🪶",d:"Write a poem about the seasons.",sheet:()=>["Pick a season: ________","List 5 things you can see, hear, smell, touch, taste in that season:","Write a simile (as … as / like …): ________________","Write a metaphor: ________________","Now write your poem (at least 3 verses). Read it aloud to someone!"]},
+{id:"e17",t:"Fact or Opinion?",s:"English",min:9,max:14,type:"digital",e:"🧐",d:"Spot facts and opinions.",q:[["'Paris is the capital of France.'","fact",["opinion"]],["'Chocolate is the best food.'","opinion",["fact"]],["'Water boils at 100°C at sea level.'","fact",["opinion"]],["'Football is boring.'","opinion",["fact"]],["'The Moon orbits the Earth.'","fact",["opinion"]]]},
+{id:"e18",t:"Inference Detective",s:"English",min:11,max:16,type:"digital",e:"🕵️",d:"Read between the lines.",q:[["'She slammed the door and stomped upstairs.' How does she feel?","angry",["happy","sleepy","calm"]],["'His teeth chattered and he pulled his coat tighter.' What is the weather?","cold",["hot","sunny and warm","calm"]],["'The crowd roared as the ball hit the net.' What happened?","a goal was scored",["the game was cancelled","it rained","someone fell"]],["'She checked her watch for the tenth time.' She is probably…","impatient",["relaxed","asleep","bored of watches"]]]},
+{id:"s10",t:"My Five Senses",s:"Science",min:4,max:6,type:"digital",e:"👀",d:"Which sense do you use?",q:[["Which body part do you use to smell?","nose",["ears","eyes","hands"]],["You hear with your…","ears",["nose","feet","tongue"]],["You taste with your…","tongue",["eyes","ears","elbow"]],["You see with your…","eyes",["nose","ears","knees"]],["How many senses do we have?","5",["3","7","10"]]]},
+{id:"s11",t:"Bug Hunt",s:"Science",min:4,max:9,type:"paper",e:"🐞",d:"Go outside and look under logs and leaves (gently!).",sheet:()=>["Where did you look? ________________","Tally how many you found: Ants ___ Worms ___ Spiders ___ Beetles ___ Woodlice ___ Other ___","Draw your favourite minibeast:",BOX,"How many legs did it have? ______","Remember to put every bug back where you found it!"]},
+{id:"s12",t:"Human Body",s:"Science",min:7,max:11,type:"digital",e:"🫀",d:"Organs and what they do.",q:[["Which organ pumps blood?","heart",["lungs","brain","stomach"]],["We breathe with our…","lungs",["kidneys","liver","heart"]],["How many bones in an adult body (about)?","206",["50","100","500"]],["Which organ controls the body?","brain",["heart","skin","stomach"]],["The largest organ is the…","skin",["liver","heart","brain"]]]},
+{id:"s13",t:"Electricity",s:"Science",min:9,max:13,type:"digital",e:"💡",d:"Circuits, conductors and insulators.",q:[["Which is a good conductor?","copper",["plastic","rubber","wood"]],["Which is an insulator?","rubber",["iron","copper","aluminium"]],["A circuit needs to be…","complete",["broken","wet","cold"]],["What stores energy in a circuit?","battery",["switch","wire","bulb"]],["What does a switch do?","opens or closes the circuit",["makes electricity","stores energy","cools wires"]]]},
+{id:"s14",t:"Grow a Bean",s:"Science",min:5,max:10,type:"paper",e:"🌱",d:"Grow a bean in a jar and watch it change for 2 weeks.",sheet:()=>["You need: a jar, kitchen roll, water, a dried bean.","Day 1 — draw it:",BOX,"Day 4 — what changed? ________________","Day 7 — measure the shoot: ______ cm","Day 14 — measure again: ______ cm","What did the bean need to grow? ________________"]},
+{id:"s15",t:"Chemical Reactions",s:"Science",min:11,max:16,type:"video",e:"⚗️",d:"Learn what happens when substances react.",yt:"chemical reactions explained for kids",q:[["A sign of a chemical reaction is…","a gas is produced",["it gets wet","it is shiny","it is heavy"]],["Rusting is a reaction between iron, water and…","oxygen",["salt","helium","sugar"]]]},
+{id:"s16",t:"Food Chains",s:"Science",min:8,max:12,type:"digital",e:"🦊",d:"Who eats who?",q:[["A food chain always starts with a…","plant (producer)",["predator","rock","fungus"]],["In grass → rabbit → fox, the fox is a…","predator",["producer","prey","plant"]],["Animals that eat only plants are…","herbivores",["carnivores","omnivores","producers"]],["Humans who eat plants and meat are…","omnivores",["herbivores","carnivores","producers"]]]},
+{id:"h6",t:"Toys Long Ago",s:"History",min:4,max:7,type:"paper",e:"🧸",d:"Ask a grandparent or older person about their toys.",sheet:()=>["Who did you ask? ________","What toys did they play with? ________________","Draw one of their toys and one of yours:",BOX,"What is the same? ________  What is different? ________"]},
+{id:"h7",t:"Vikings",s:"History",min:7,max:11,type:"digital",e:"⛵",d:"Raiders and traders from Scandinavia.",q:[["Where did the Vikings come from?","Scandinavia",["Italy","Egypt","China"]],["Viking ships were called…","longships",["galleons","canoes","yachts"]],["Which Viking god had a hammer?","Thor",["Zeus","Ra","Mars"]],["Vikings first raided Britain around…","AD 793",["AD 1500","AD 43","AD 1066"]]]},
+{id:"h8",t:"Ancient Greece",s:"History",min:8,max:12,type:"video",e:"🏺",d:"Gods, the Olympics and democracy.",yt:"Ancient Greece for kids",q:[["The first Olympic Games were held in…","Ancient Greece",["Ancient Rome","Egypt","China"]],["King of the Greek gods:","Zeus",["Thor","Ra","Jupiter"]],["Greece gave us the idea of…","democracy",["pyramids","printing","gunpowder"]]]},
+{id:"h9",t:"The Tudors",s:"History",min:9,max:14,type:"digital",e:"👑",d:"Henry VIII and his family.",q:[["How many wives did Henry VIII have?","6",["2","4","8"]],["Which Tudor queen reigned for 44 years?","Elizabeth I",["Mary I","Anne Boleyn","Victoria"]],["The Spanish Armada was defeated in…","1588",["1066","1666","1805"]],["The first Tudor king was…","Henry VII",["Henry VIII","Edward VI","Richard III"]]]},
+{id:"h10",t:"Industrial Revolution",s:"History",min:11,max:16,type:"digital",e:"🏭",d:"How machines changed Britain.",q:[["The Industrial Revolution began in…","Britain",["France","USA","Japan"]],["Which invention powered early factories?","the steam engine",["the computer","the jet engine","the solar panel"]],["Many children worked in…","factories and mines",["offices","airports","shopping centres"]],["Roughly when did it start?","1760s",["1500s","1900s","1960s"]]]},
+{id:"g6",t:"Hot & Cold Places",s:"Geography",min:4,max:7,type:"digital",e:"🐧",d:"Where do animals live?",q:[["Where do penguins live?","Antarctica",["the desert","the jungle","the Sahara"]],["Camels live in the…","desert",["Arctic","ocean","rainforest"]],["Polar bears live in the…","Arctic",["desert","jungle","savannah"]],["Monkeys swing in the…","rainforest",["Arctic","desert","sea"]]]},
+{id:"g7",t:"UK Countries",s:"Geography",min:6,max:10,type:"digital",e:"🇬🇧",d:"The four countries of the United Kingdom.",q:[["Capital of Scotland?","Edinburgh",["Glasgow","Cardiff","Belfast"]],["Capital of Wales?","Cardiff",["Swansea","Edinburgh","London"]],["Capital of Northern Ireland?","Belfast",["Dublin","Derry","Cardiff"]],["How many countries in the UK?","4",["2","3","5"]],["The longest river in the UK is the…","Severn",["Thames","Trent","Tyne"]]]},
+{id:"g8",t:"Compass Walk",s:"Geography",min:6,max:11,type:"paper",e:"🧭",d:"Use a compass (or phone compass) on a walk.",sheet:()=>["Which direction does your front door face? ______","Walk 20 steps north. What do you see? ________________","Walk 20 steps east. What do you see? ________________","Draw a map of your route with N/E/S/W:",BOX]},
+{id:"g9",t:"Rivers",s:"Geography",min:8,max:12,type:"video",e:"🏞️",d:"From source to sea.",yt:"rivers for kids geography source to mouth",q:[["Where a river starts is called the…","source",["mouth","delta","bank"]],["Where a river meets the sea is the…","mouth",["source","tributary","spring"]],["A smaller river joining a bigger one is a…","tributary",["meander","estuary","waterfall"]]]},
+{id:"g10",t:"Climate Change",s:"Geography",min:11,max:16,type:"digital",e:"🌡️",d:"Causes and effects.",q:[["Which gas is the main cause of climate change?","carbon dioxide",["oxygen","helium","nitrogen"]],["Burning which releases the most CO₂?","fossil fuels",["wind","sunlight","water"]],["A renewable energy source is…","solar",["coal","oil","gas"]],["Melting ice sheets cause…","sea level rise",["more deserts","earthquakes","volcanoes"]]]},
+{id:"a3",t:"Leaf Rubbing",s:"Art",min:4,max:8,type:"paper",e:"🍂",d:"Collect leaves, put paper on top and rub with a crayon.",sheet:()=>["Collect 5 different leaves.","Put paper over a leaf, rub gently with the side of a crayon.","Stick your best rubbing here:",BOX,"Which leaf had the best pattern? ________"]},
+{id:"a4",t:"Self Portrait",s:"Art",min:6,max:14,type:"paper",e:"🖼️",d:"Use a mirror to draw yourself.",sheet:()=>["Look closely in a mirror. Where are your eyes on your face? (halfway down!)","Draw lightly first, then add detail:",BOX,"Add colour or shading.","What was the hardest part? ________"]},
+{id:"a5",t:"Famous Artists",s:"Art",min:8,max:14,type:"digital",e:"🎨",d:"Match artists to their work.",q:[["Who painted the Mona Lisa?","Leonardo da Vinci",["Picasso","Van Gogh","Monet"]],["Who painted Water Lilies?","Claude Monet",["Frida Kahlo","Michelangelo","Dalí"]],["Picasso is famous for which style?","Cubism",["Impressionism","Pop Art","Realism"]],["Who painted the Sistine Chapel ceiling?","Michelangelo",["Rembrandt","Banksy","Turner"]]]},
+{id:"mu2",t:"Instruments of the Orchestra",s:"Music",min:6,max:12,type:"digital",e:"🎻",d:"The four instrument families.",q:[["A violin is in which family?","strings",["brass","woodwind","percussion"]],["A trumpet is in which family?","brass",["strings","woodwind","percussion"]],["A flute is in which family?","woodwind",["brass","strings","percussion"]],["A drum is in which family?","percussion",["strings","brass","woodwind"]],["The person who leads the orchestra is the…","conductor",["composer","soloist","drummer"]]]},
+{id:"mu3",t:"Make a Shaker",s:"Music",min:4,max:8,type:"paper",e:"🪇",d:"Make an instrument from things at home.",sheet:()=>["You need: an empty bottle or tub, rice or dried beans, tape.","Fill a little, seal it tight, decorate it!","Shake it loud, then quiet. Shake it fast, then slow.","Play along to your favourite song."]},
+{id:"p3",t:"Ball Skills",s:"PE",min:4,max:10,type:"paper",e:"⚽",d:"Practise outside with a ball.",sheet:()=>["Throw and catch with a partner: how many in a row? ______","Bounce the ball 10 times with one hand, then the other.","Kick at a target 10 times. Hits: ______","Dribble around 5 cones/objects and back. Time: ______"]},
+{id:"p4",t:"Healthy Living",s:"PE",min:7,max:12,type:"digital",e:"🥦",d:"Food, sleep and exercise.",q:[["How much exercise should children get each day?","about 60 minutes",["5 minutes","4 hours","none"]],["Which food group gives us energy?","carbohydrates",["water","vitamins only","salt"]],["How many portions of fruit & veg a day?","at least 5",["1","none","20"]],["Children aged 6–12 should sleep about…","9–12 hours",["4 hours","6 hours","16 hours"]]]},
+{id:"l1",t:"Money Skills",s:"Life skills",min:7,max:14,type:"paper",e:"💷",d:"Plan a shopping trip with a budget of £10.",sheet:()=>["Write a shopping list for a picnic: ________________","Find prices (online or in a shop) and write them next to each item.","Total cost: £______  Under £10? Yes / No","If not, what could you swap? ________________","Go shopping with a grown-up and pay yourself!"]},
+{id:"l2",t:"Kitchen Helper",s:"Life skills",min:5,max:12,type:"paper",e:"🍳",d:"Help make a meal with a grown-up.",sheet:()=>["What meal did you make? ________","Wash your hands first! ✓","Jobs you did (tick): wash veg ☐ measure ☐ stir ☐ chop (with help) ☐ set table ☐","What was tricky? ________________","How did it taste? ☆ ☆ ☆ ☆ ☆"]},
 {id:"p2",t:"Fitness Circuit",s:"PE",min:6,max:16,type:"paper",e:"🏃",d:"Do each exercise for 30 seconds, rest 15 seconds. Repeat 3 times!",sheet:()=>["Star jumps","Squats","Running on the spot","Plank","Hopping on one leg (swap halfway)","Bear crawl","How do you feel afterwards? ____________________"]},
 ];
 const WI=Object.fromEntries(W.map(w=>[w.id,w]));
@@ -418,7 +470,7 @@ $("af").onsubmit=async e=>{e.preventDefault();
  if(pw.length<6)return $("aErr").textContent="Password must be at least 6 characters";
  if(mode=="up"&&!nm)return $("aErr").textContent="Enter your name";
  $("aBtn").disabled=true;$("aErr").textContent="";
- const r=mode=="up"?await sb.auth.signUp({email:em,password:pw,options:{data:{name:nm}}}):await sb.auth.signInWithPassword({email:em,password:pw});
+ const r=mode=="up"?await sb.auth.signUp({email:em,password:pw,options:{data:{name:nm},emailRedirectTo:location.origin+location.pathname}}):await sb.auth.signInWithPassword({email:em,password:pw});
  $("aBtn").disabled=false;
  if(r.error)return $("aErr").textContent=r.error.message;
  if(!r.data.session){$("aErr").style.color="var(--ok)";$("aErr").textContent="Check your email to confirm your account, then log in.";return}
@@ -426,7 +478,11 @@ $("af").onsubmit=async e=>{e.preventDefault();
  if(mode=="up"){toast("Welcome! Add your first learner 👋");openKid()}
 };
 $("logout").onclick=async()=>{await sb.auth.signOut();me=null;data=null;show("start")};
-function save(){clearTimeout(saveT);saveT=setTimeout(async()=>{const {error}=await sb.from("profiles").upsert({id:uid,data,updated_at:new Date().toISOString()});if(error)toast("⚠️ Couldn't save: "+error.message)},400)}
+$("delAcct").onclick=async()=>{if(await ask("Delete ALL your data? Learners, timetables, results and login codes will be permanently erased. This can't be undone.",["Yes, delete everything","Cancel"]))return;
+ const e=[await sb.from("results").delete().eq("parent",uid),await sb.from("child_links").delete().eq("parent",uid),await sb.from("profiles").delete().eq("id",uid)].find(r=>r.error);
+ if(e)return toast("⚠️ "+e.error.message);
+ clearTimeout(saveT);data=null;await sb.auth.signOut();show("start");toast("All your data was deleted")};
+function save(){if(!data)return;clearTimeout(saveT);saveT=setTimeout(async()=>{const {error}=await sb.from("profiles").upsert({id:uid,data,updated_at:new Date().toISOString()});if(error)toast("⚠️ Couldn't save: "+error.message)},400)}
 async function load(user){me=user.email;uid=user.id;
  const {data:row,error}=await sb.from("profiles").select("data").eq("id",uid).maybeSingle();
  if(error){show("auth");$("aErr").textContent="Couldn't load your data: "+error.message;return}
@@ -467,12 +523,17 @@ $("qrNew").onclick=async()=>{if(await ask("Make a new code? The old one will sto
 
 // ================= ASSIGN WORK =================
 let asWorkId=null;
+function fillMine(){const m=data.mine||[];$("mineRow").style.display=m.length?"block":"none";
+ $("mineSel").innerHTML=`<option value="">— Start fresh —</option>`+m.map((x,i)=>`<option value="${i}">${TY[x.type]?.split(" ")[0]||"📝"} ${esc(x.title)}</option>`).join("")}
+$("mineSel").onchange=()=>{const x=(data.mine||[])[$("mineSel").value];if(!x)return;$("cT").value=x.title;$("cS").value=x.sub;$("cY").value=x.type;$("cL").value=x.link||"";$("cN").value=x.notes||""};
+$("mineDel").onclick=async()=>{const i=$("mineSel").value;if(i==="")return toast("Pick a saved activity first");
+ if(await ask(`Delete "${data.mine[i].title}" from saved activities? (Already scheduled ones stay.)`,["Delete","Cancel"]))return;data.mine.splice(i,1);save();fillMine();toast("Deleted")};
 function openAssign(workId,date){const k=kid();if(!k)return toast("Add a learner first");
  asWorkId=workId||null;
  $("asPicked").style.display=workId?"flex":"none";$("asCustom").style.display=workId?"none":"block";
  if(workId){const w=WI[workId];$("asPicked").innerHTML=`<div class="th">${w.e}</div><div class="cb"><h3>${esc(w.t)}</h3><div class="meta">${w.s} · Ages ${w.min}–${w.max}</div><span class="type">${TY[w.type]}</span></div>`}
- $("cS").innerHTML=SUBJ.map(s=>`<option>${s}</option>`).join("")+"<option>Life skills</option><option>Other</option>";
- ["cT","cL","cN"].forEach(i=>$(i).value="");
+ $("cS").innerHTML=SUBJ.map(s=>`<option>${s}</option>`).join("")+"<option>Other</option>";
+ ["cT","cL","cN"].forEach(i=>$(i).value="");fillMine();
  $("asDate").value=date||ymd(dayDate(selDay));$("asTime").value="09:00";$("asErr").textContent="";$("asRep").innerHTML="";
  $("asH").textContent=(workId?"Assign to ":"Add activity for ")+k.name;
  syncAs();$("asModal").classList.add("on")}
@@ -485,7 +546,8 @@ $("asSave").onclick=()=>{const k=kid(),w=asWorkId||"custom",d=$("asDate").value;
  const a={id:nid(),kid:k.id,time:$("asTime").value||"09:00",rep:$("asRep").value,date:d};
  if(w=="custom"){const t=$("cT").value.trim();if(!t)return $("asErr").textContent="Give your activity a title";
   let l=$("cL").value.trim();if(l&&!/^https?:\/\//i.test(l))l="https://"+l;
-  a.c={title:t,sub:$("cS").value,type:$("cY").value,link:l,notes:$("cN").value.trim()}}
+  a.c={title:t,sub:$("cS").value,type:$("cY").value,link:l,notes:$("cN").value.trim()};
+  if($("cSave").checked){data.mine=data.mine||[];const i=data.mine.findIndex(m=>m.title.toLowerCase()==t.toLowerCase());if(i>=0)data.mine[i]={...a.c};else data.mine.push({...a.c})}}
  else a.work=w;
  data.plan.push(a);save();closeM("asModal");
  const sd=new Date(d+"T00:00");sd.setDate(sd.getDate()-dowOf(d));wk=Math.round((sd-weekStart(0))/6048e5);selDay=dowOf(d);
@@ -576,6 +638,7 @@ function childOpen(id,D){const a=CH.plan.find(x=>x.id==id);openWork(workOf(a),{k
 
 // ================= WORK PLAYER =================
 let P=null;
+function ytId(u){const m=String(u||"").match(/(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/);return m?m[1]:null}
 function openWork(w,ctx){P={w,ctx,qs:w.custom?[]:qsOf(w),i:0,score:0,stage:w.custom?"custom":w.type=="digital"?"quiz":w.type};
  $("player").classList.add("on");drawP()}
 function closeP(){$("player").classList.remove("on");P=null}
@@ -585,7 +648,9 @@ function drawP(){const {w}=P;let h=`<div class="ph"><button class="ib" onclick="
  if(P.ctx.preview)h+=`<div class="note" style="margin:0 0 10px">👁 Preview — nothing will be saved</div>`;
  if(P.stage=="custom"){
   h+=`<div id="sheetDoc">${sheetHTML(w)}</div>`;
-  if(w.link)h+=`<a class="big" href="${esc(w.link)}" target="_blank" rel="noopener">${w.type=="video"?"▶ Watch the video":"🔗 Open the activity"}</a>`;
+  const yid=ytId(w.link);
+  if(yid)h+=`<div style="position:relative;padding-top:56.25%;margin-top:14px;border-radius:14px;overflow:hidden;background:#000"><iframe src="https://www.youtube-nocookie.com/embed/${yid}?rel=0&modestbranding=1" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer;encrypted-media;gyroscope;picture-in-picture;fullscreen" allowfullscreen></iframe></div>`;
+  else if(w.link)h+=`<a class="big" href="${esc(w.link)}" target="_blank" rel="noopener">${w.type=="video"?"▶ Watch the video":"🔗 Open the activity"}</a>`;
   
   h+=`<button class="big ${w.link?"ghost":""}" onclick="finish({done:true})">I've finished ✅</button>`}
  else if(P.stage=="video"){
